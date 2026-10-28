@@ -35,6 +35,8 @@ input,select,textarea{width:100%;padding:12px;border:1px solid #dbe1e9;border-ra
 .modalWrap{position:fixed;inset:0;background:#0007;z-index:200;display:flex;align-items:center;justify-content:center;padding:18px}.modal{width:min(1220px,100%);height:min(92vh,860px);background:#fff;border-radius:22px;overflow:hidden;display:grid;grid-template-columns:300px 1fr;border:1px solid var(--line);box-shadow:0 20px 60px #0004}.sidebar{padding:16px;background:#fbfcfe;border-right:1px solid var(--line);overflow:auto}.boardArea{display:flex;flex-direction:column;min-width:0}.boardTop{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap}.boardTop h3{margin:0;font-size:20px}.sideGroup{margin-bottom:18px}.sideGroup h4{font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin:0 0 10px}.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.seg.two{grid-template-columns:repeat(2,1fr)}.seg button{padding:10px 8px;font-size:13px}.seg button.on,.tool.on,.colorbtn.on,.tokenBtn.on{background:var(--red);color:#fff;border-color:var(--red)}.toolsGrid,.tokenGrid,.colorGrid,.sizeGrid{display:grid;gap:8px}.toolsGrid{grid-template-columns:repeat(2,1fr)}.tokenGrid{grid-template-columns:repeat(2,1fr)}.colorGrid{grid-template-columns:repeat(5,1fr)}.sizeGrid{grid-template-columns:repeat(3,1fr)}.tool,.tokenBtn,.sizeBtn{padding:10px 8px;font-size:13px}.colorbtn{width:100%;height:38px;border-radius:10px;padding:0}.colorbtn span{display:block;width:100%;height:100%;border-radius:9px}.boardCanvasWrap{flex:1;min-height:0;overflow:hidden;background:#dfe4ea;padding:12px;display:flex;justify-content:center;align-items:center}.boardCanvas{display:block;width:auto;height:auto;max-width:100%;max-height:calc(92vh - 145px);object-fit:contain;background:#fff;box-shadow:0 10px 25px #00000022;border-radius:6px;touch-action:none}.team-a{background:#ed3f49!important;color:white!important;border-color:#ed3f49!important}.team-b{background:#3f7ff0!important;color:white!important;border-color:#3f7ff0!important}.tokenLegend{font-size:12px;color:var(--muted);line-height:1.4}.pill{display:inline-block;padding:3px 8px;border-radius:99px;background:#eef3fa;color:#4b5873;font-size:12px;font-weight:700}.spaced{display:flex;gap:8px;flex-wrap:wrap}.boardActions{display:flex;gap:8px;flex-wrap:wrap}.hint{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.45}
 @media(max-width:980px){.editor{grid-template-columns:1fr}.modal{grid-template-columns:1fr;height:95vh}.sidebar{order:2;border-right:none;border-top:1px solid var(--line)}.boardArea{order:1}.top{flex-direction:column;align-items:stretch}.printmeta{grid-template-columns:1fr}}
 @media print{body{background:white}.top,.noprint,.toolbar,.foot{display:none!important}.container{max-width:none;margin:0;padding:0}.preview{max-width:none;border:none;padding:0}.printEx{break-inside:avoid} @page{size:A4;margin:14mm}}
+
+.cloudBox{margin:16px 0;padding:18px;background:#fff;border:1px solid #dbe1e9;border-radius:16px}.cloudBox h3{margin:0 0 6px}.cloudBox p{margin:8px 0;color:#536077;font-size:13px}.cloudStatus{background:#f3f6fb;border-radius:8px;padding:10px;font-size:13px;margin:10px 0}.cloudButtons{display:flex;gap:8px;flex-wrap:wrap}.cloudBox button{font-size:13px}.cloudWarn{background:#fff8eb;color:#865b17;border-radius:8px;padding:9px;font-size:12px}.cloudHidden{display:none}
 </style>
 </head>
 <body>
@@ -175,12 +177,13 @@ function cards(archived){
     <input class="hide" type="file" id="logoFile" accept="image/*">
   </div>
   <p class="muted" style="font-size:13px;margin-top:-8px">Automatische Sicherung: Änderungen werden lokal gespeichert und zusätzlich in bis zu 10 Wiederherstellungspunkten gesichert. Für echten Schutz bei PC-/Browserwechsel bitte regelmäßig eine JSON-Sicherung herunterladen (z. B. nach OneDrive).</p>
+  ${cloudPanel()}
   <div class="cards">
     ${all.map(u=>`<article class="card"><span class="tag">ALPLA HC Hard</span><h3>${esc(u.title)}</h3><p class="muted">${esc(u.hall||'Halle noch nicht eingetragen')}</p><div class="meta"><div><small>ÜBUNGEN</small><br><b>${u.exercises.length}</b></div><div><small>DATUM</small><br><b>${formatDate(u.date)}</b></div></div><div class="actions"><button onclick="editUnit('${u.id}')">Bearbeiten</button><button onclick="openPreview('${u.id}')">PDF</button><button onclick="cloneUnit('${u.id}')">Kopieren</button><button onclick="archiveUnit('${u.id}')">${archived?'Aktivieren':'Archivieren'}</button><button onclick="deleteUnit('${u.id}')">Löschen</button></div></article>`).join('')}
     ${!archived?'<button class="new" onclick="newUnit()">＋ Neue Trainingseinheit</button>':''}
   </div>`;
 }
-function bindCards(){setStorageStatus(storageError?'Speicherung fehlgeschlagen':storageMode==='indexeddb'?'Gespeichert in IndexedDB':'Alter lokaler Speicher',!!storageError);
+function bindCards(){bindCloudPanel();setStorageStatus(storageError?'Speicherung fehlgeschlagen':storageMode==='indexeddb'?'Gespeichert in IndexedDB':'Alter lokaler Speicher',!!storageError);
   $('findUnits').oninput=e=>{search=e.target.value;const pos=e.target.selectionStart;render();$('findUnits').focus();$('findUnits').setSelectionRange(pos,pos)};
   $('backup').onclick=exportData;
   $('restoreSnapshots').onclick=restoreSnapshots;
@@ -486,6 +489,58 @@ function drawField(ctx,view,w,h){
     if(img) img.onload=()=>{ if(boardState) renderBoard(); };
   }
 }
+
+
+// OneDrive connection — manual synchronization while it is being validated.
+// No user data, access tokens or backups are written into the public GitHub repository.
+const CLOUD_CLIENT_ID='9cb5f3b6-3402-458c-9dae-83c368b0fa5a';
+const CLOUD_SCOPE=['User.Read','Files.ReadWrite.AppFolder'];
+const CLOUD_BACKUP='HC-Hard-Trainingsplaner.json';
+let cloudApp=null,cloudAccount=null,cloudBusy=false;
+let cloudMsg='Noch nicht verbunden. Zuerst Verbindung testen.';
+function cloudPanel(){return `<section class="cloudBox"><h3>☁ Microsoft 365 / OneDrive – Verbindungstest</h3>
+<p>Erst anmelden, dann OneDrive-Zugriff testen. Upload und Download sind bis zur erfolgreichen Verbindung manuell; es findet noch keine automatische Synchronisierung statt.</p>
+<div class="cloudStatus" id="cloudStatus">${esc(cloudMsg)}</div>
+<div class="cloudButtons"><button id="cloudLogin">Mit Microsoft 365 anmelden</button><button id="cloudTest">Verbindung testen</button><button id="cloudUpload">Daten nach OneDrive hochladen</button><button id="cloudDownload">OneDrive-Daten laden</button></div>
+<p class="cloudWarn">Vor dem ersten Hochladen unbedingt eine JSON-Sicherung herunterladen. Beim Hochladen wird eine bestehende Cloud-Datei nur nach Bestätigung überschrieben. Beim Herunterladen werden lokale Daten nur nach Bestätigung ersetzt.</p>
+</section>`;}
+function cloudMessage(s){cloudMsg=s;const el=$('cloudStatus');if(el)el.textContent=s;}
+function bindCloudPanel(){const actions=[['cloudLogin',cloudLogin],['cloudTest',cloudTest],['cloudUpload',cloudUpload],['cloudDownload',cloudDownload]];for(const [id,fn] of actions){const el=$(id);if(el)el.onclick=fn;}}
+function cloudScript(){return new Promise((resolve,reject)=>{if(window.msal){resolve(window.msal);return;}let el=document.createElement('script');el.src='https://alcdn.msauth.net/browser/2.38.4/js/msal-browser.min.js';el.onload=()=>window.msal?resolve(window.msal):reject(Error('MSAL-Bibliothek konnte nicht geladen werden'));el.onerror=()=>reject(Error('Microsoft-Anmeldebibliothek wurde blockiert.'));document.head.append(el);});}
+async function cloudInitialize(){if(cloudApp)return cloudApp;await cloudScript();cloudApp=new window.msal.PublicClientApplication({auth:{clientId:CLOUD_CLIENT_ID,authority:'https://login.microsoftonline.com/organizations',redirectUri:'https://tamercirit-dot.github.io/HC-Hard-Trainingsplaner/'},cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}});cloudAccount=cloudApp.getAllAccounts()[0]||null;return cloudApp;}
+async function cloudLogin(){try{cloudMessage('Microsoft-Anmeldung wird geöffnet …');const app=await cloudInitialize();const result=await app.loginPopup({scopes:CLOUD_SCOPE});cloudAccount=result.account;cloudMessage('Angemeldet: '+(cloudAccount.username||'Microsoft 365')+'. Jetzt Verbindung testen.');}catch(e){cloudMessage('Anmeldung fehlgeschlagen: '+(e?.message||e));}}
+async function cloudToken(){const app=await cloudInitialize();if(!cloudAccount)cloudAccount=app.getAllAccounts()[0];if(!cloudAccount)throw Error('Zuerst auf „Mit Microsoft 365 anmelden“ klicken.');try{return (await app.acquireTokenSilent({account:cloudAccount,scopes:CLOUD_SCOPE})).accessToken;}catch(e){const r=await app.acquireTokenPopup({account:cloudAccount,scopes:CLOUD_SCOPE});return r.accessToken;}}
+async function cloudFetch(url,options={}){const token=await cloudToken();const resp=await fetch(url,{...options,headers:{Authorization:'Bearer '+token,...options.headers}});if(!resp.ok){let body=await resp.text().catch(()=> '');throw Error('Microsoft Graph HTTP '+resp.status+': '+body.slice(0,450));}return resp;}
+async function cloudRoot(){return (await (await cloudFetch('https://graph.microsoft.com/v1.0/me/drive/special/approot')).json());}
+async function cloudTest(){try{cloudMessage('Prüfe die Verbindung und den App-Ordner …');const root=await cloudRoot();cloudMessage('Verbindung erfolgreich! OneDrive-App-Ordner: '+(root.name||root.webUrl||'Apps/ALPLA HC Hard Trainingsplaner'));}catch(e){cloudMessage('Verbindung fehlgeschlagen: '+(e?.message||e)+'. Eventuell muss die IT die Berechtigung freigeben.');}}
+async function cloudFileInfo(root){try{return await(await cloudFetch('https://graph.microsoft.com/v1.0/me/drive/items/'+encodeURIComponent(root.id)+':/'+CLOUD_BACKUP)).json();}catch(e){if(String(e).includes('HTTP 404'))return null;throw e;}}
+async function cloudUpload(){if(cloudBusy)return;cloudBusy=true;try{
+  await writeQueue.catch(()=>{});
+  const root=await cloudRoot();const existing=await cloudFileInfo(root);
+  if(!confirm('Gesamte Trainingsdaten ('+db.units.length+' Einheiten, '+db.library.length+' Bibliotheksübungen) jetzt nach OneDrive hochladen?'+(existing?' Eine vorhandene Cloud-Sicherung wird dadurch überschrieben.':'')+'\nVorher eine separate JSON-Sicherung herunterladen!'))return;
+  const payload=JSON.stringify({units:db.units,library:db.library,logo:db.logo||''});
+  const bytes=new TextEncoder().encode(payload);cloudMessage('OneDrive-Upload startet ('+(bytes.length/1048576).toFixed(1)+' MB) …');
+  // Create a resumable upload session: JSON backups may exceed Graph's 4 MB simple upload limit.
+  const sessionUrl='https://graph.microsoft.com/v1.0/me/drive/items/'+encodeURIComponent(root.id)+':/'+CLOUD_BACKUP+':/createUploadSession';
+  const session=await (await cloudFetch(sessionUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({item:{'@microsoft.graph.conflictBehavior':'replace',name:CLOUD_BACKUP}})})).json();
+  const chunkSize=327680*10;let offset=0;
+  while(offset<bytes.length){const end=Math.min(bytes.length,offset+chunkSize),part=bytes.slice(offset,end);
+    const response=await fetch(session.uploadUrl,{method:'PUT',headers:{'Content-Length':String(part.length),'Content-Range':'bytes '+offset+'-'+(end-1)+'/'+bytes.length},body:part});
+    if(!response.ok)throw Error('Upload fehlgeschlagen bei '+offset+': HTTP '+response.status+' '+(await response.text()).slice(0,200));
+    offset=end;cloudMessage('Upload: '+Math.round(offset/bytes.length*100)+' %');
+  }
+  cloudMessage('✓ Daten erfolgreich in OneDrive gespeichert. Auf anderen Geräten „OneDrive-Daten laden“ verwenden.');
+}catch(e){cloudMessage('Upload fehlgeschlagen: '+(e?.message||e));}finally{cloudBusy=false;}}
+async function cloudDownload(){if(cloudBusy)return;cloudBusy=true;try{
+  cloudMessage('Suche Cloud-Sicherung …');const root=await cloudRoot();const file=await cloudFileInfo(root);if(!file){cloudMessage('Noch keine Cloud-Sicherung vorhanden. Zuerst auf einem Gerät hochladen.');return;}
+  const response=await cloudFetch('https://graph.microsoft.com/v1.0/me/drive/items/'+encodeURIComponent(file.id)+'/content');
+  const text=await response.text();const incoming=JSON.parse(text);
+  if(!Array.isArray(incoming.units)||!Array.isArray(incoming.library))throw Error('Cloud-Datei ist keine gültige Trainingsplaner-Sicherung.');
+  if(!confirm('Cloud-Sicherung enthält '+incoming.units.length+' Trainingseinheiten und '+incoming.library.length+' Bibliotheksübungen.\n\nALLE lokalen Daten auf diesem Gerät werden durch diese Cloud-Daten ersetzt! Zuerst lokale JSON-Sicherung herunterladen. Fortfahren?'))return;
+  const old=deep(db);db={units:incoming.units.map(normalizeUnit),library:incoming.library,logo:incoming.logo||''};
+  const ok=save();if(!ok){db=old;throw Error('Lokales Speichern ist fehlgeschlagen. Daten wurden nicht dauerhaft übernommen.');}
+  logo();render();cloudMessage('✓ Cloud-Sicherung geladen. Änderungen auf diesem Gerät anschließend manuell wieder nach OneDrive hochladen.');
+}catch(e){cloudMessage('Laden fehlgeschlagen: '+(e?.message||e));}finally{cloudBusy=false;}}
 
 function render(){
   const app=$('app');
