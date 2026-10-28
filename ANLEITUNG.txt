@@ -1,8 +1,1 @@
-VERSION 22 – Microsoft-Anmeldung
-
-1. In GitHub index.html UND auth.html ins Hauptverzeichnis hochladen.
-2. Entra App-Registrierungen > ALPLA HC Hard Trainingsplaner > Authentifizierung: Als SPA-Umleitungsadresse zusätzlich https://tamercirit-dot.github.io/HC-Hard-Trainingsplaner/auth.html eintragen.
-3. GitHub Pages neu laden (Strg+F5); Microsoft-Anmeldung testen und erst danach Verbindung testen.
-4. Keine JSON-Backups in ein öffentliches Repository hochladen.
-
-Die bestehende Speicherung bleibt unverändert.
+Version 24: OneDrive Auto-Sync (Testversion). Vorher JSON-Backup herunterladen. Nach der Microsoft-Anmeldung erfolgt ein Erstabgleich. Unterschiedliche Daten erfordern manuelle Auswahl. Cloud-Sicherung bleibt als Gesamtdaten-Datei vorhanden. Ordner werden zusätzlich angelegt. Online-Verbindung erforderlich. Keine Gewähr bei zeitgleichen Offline-Änderungen.

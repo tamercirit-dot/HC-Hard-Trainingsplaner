@@ -130,13 +130,13 @@ function save(){
  if(storageMode==='indexeddb'){
    const copy=deep(db);
    setStorageStatus('Speichert …');
-   writeQueue=writeQueue.catch(()=>{}).then(()=>mainPut(mainStorage,copy)).then(()=>{storageError='';setStorageStatus('Gespeichert in IndexedDB')}).catch(e=>{
+   writeQueue=writeQueue.catch(()=>{}).then(()=>mainPut(mainStorage,copy)).then(()=>{storageError='';setStorageStatus('Gespeichert in IndexedDB');scheduleCloudAuto();}).catch(e=>{
      storageError=String(e?.message||e);setStorageStatus('Speicherung fehlgeschlagen – Backup herunterladen!',true);
      alert('Das Speichern in IndexedDB ist fehlgeschlagen: '+storageError+'\nBitte sofort eine JSON-Datensicherung herunterladen.');
    });
    scheduleSnapshot();return true;
  }
- try{localStorage.setItem(STORE,JSON.stringify(db));scheduleSnapshot();return true}catch(e){setStorageStatus('Speicherung fehlgeschlagen – bitte Backup herunterladen!',true);alert('Der lokale Speicher ist voll. Bitte zuerst eine Datensicherung exportieren.');return false}
+ try{localStorage.setItem(STORE,JSON.stringify(db));scheduleSnapshot();scheduleCloudAuto();return true}catch(e){setStorageStatus('Speicherung fehlgeschlagen – bitte Backup herunterladen!',true);alert('Der lokale Speicher ist voll. Bitte zuerst eine Datensicherung exportieren.');return false}
 }
 function byteSize(s){return new Blob([s]).size}
 async function storageInformation(){
@@ -498,11 +498,123 @@ const CLOUD_SCOPE=['User.Read','Files.ReadWrite.AppFolder'];
 const CLOUD_BACKUP='HC-Hard-Trainingsplaner.json';
 let cloudApp=null,cloudAccount=null,cloudBusy=false;
 let cloudMsg='Noch nicht verbunden. Zuerst Verbindung testen.';
-function cloudPanel(){return `<section class="cloudBox"><h3>☁ Microsoft 365 / OneDrive – Verbindungstest</h3>
-<p>Erst anmelden, dann OneDrive-Zugriff testen. Upload und Download sind bis zur erfolgreichen Verbindung manuell; es findet noch keine automatische Synchronisierung statt.</p>
-<div class="cloudStatus" id="cloudStatus">${esc(cloudMsg)}</div>
+let syncEnabled=false,syncTimer=null,syncPoll=null,syncWorking=false,syncConflict=false;
+let syncBaseline=null,syncLastPushed='',syncReady=false;
+const syncPayload=()=>JSON.stringify({units:db.units,library:db.library,logo:db.logo||''});
+function syncInfo(msg){const el=$('syncInfo');if(el)el.textContent=msg;}
+function scheduleCloudAuto(){
+  if(!syncEnabled||syncConflict||storageMode==='lade')return;
+  clearTimeout(syncTimer);syncTimer=setTimeout(()=>cloudAutoSave().catch(e=>cloudMessage('Automatische Sicherung fehlgeschlagen: '+e.message)),7000);
+}
+async function cloudAutoSave(){
+  if(!syncEnabled||syncConflict||syncWorking||cloudBusy||!cloudAccount)return;
+  syncWorking=true;
+  try{
+    await writeQueue;const payload=syncPayload();
+    if(payload===syncLastPushed){return;}
+    const root=await cloudRoot(),remote=await cloudFileInfo(root);
+    if(syncBaseline && (!remote || remote.eTag!==syncBaseline)){
+      syncEnabled=false;syncConflict=true;
+      cloudMessage('⚠ Cloud-Konflikt: Auf einem anderen Gerät wurden Daten geändert. Automatische Sicherung pausiert. Bitte eine JSON-Sicherung herunterladen und den Cloud-Stand prüfen.');
+      syncInfo('Konflikt: Kein automatisches Überschreiben. „OneDrive-Daten laden“ nur verwenden, wenn deine lokalen Änderungen gesichert sind.');
+      return;
+    }
+    if(!syncBaseline && remote){syncEnabled=false;syncConflict=true;cloudMessage('⚠ Cloud-Datei wurde zwischenzeitlich angelegt. Bitte Versionen prüfen.');return;}
+    cloudMessage('Automatische Sicherung nach OneDrive läuft …');
+    await cloudWriteSnapshot(root,payload,remote);
+    const updated=await cloudFileInfo(root);syncBaseline=updated?.eTag||null;syncLastPushed=payload;
+    cloudMessage('✓ Automatisch in OneDrive gespeichert: '+new Date().toLocaleTimeString('de-AT'));
+    syncInfo('Synchronisierung aktiv · zuletzt gespeichert '+new Date().toLocaleString('de-AT'));
+    cloudMirrorFolders(root).catch(e=>console.warn('Ordner-Spiegelung:',e));
+  }catch(e){syncEnabled=false;cloudMessage('⚠ Automatischer Upload angehalten: '+e.message+'. Lokale Daten bleiben erhalten.');}
+  finally{syncWorking=false;}
+}
+async function cloudStartAuto(){
+  if(syncReady||!cloudAccount||storageMode==='lade')return;
+  syncReady=true;
+  try{
+    await writeQueue;const root=await cloudRoot(),remote=await cloudFileInfo(root);
+    const local=syncPayload();
+    if(remote){
+      const incoming=await cloudReadSnapshot(remote);
+      if(!Array.isArray(incoming.units)||!Array.isArray(incoming.library))throw Error('Ungültige Cloud-Datei.');
+      const remotePayload=JSON.stringify({units:incoming.units,library:incoming.library,logo:incoming.logo||''});
+      if(remotePayload!==local){
+        const empty=(db.units.length===0 && db.library.length===0 && !db.logo);
+        if(empty){
+          db={units:incoming.units.map(normalizeUnit),library:incoming.library,logo:incoming.logo||''};
+          save();await writeQueue;logo();render();
+          cloudMessage('✓ Vorhandene Cloud-Daten automatisch geladen.');
+        }else{
+          syncConflict=true;syncEnabled=false;syncBaseline=remote.eTag;
+          cloudMessage('⚠ Unterschiedliche lokale und Cloud-Daten erkannt. Nichts überschrieben. Bitte zuerst JSON-Sicherung herunterladen und die Daten bewusst abgleichen.');
+          return;
+        }
+      }
+      syncBaseline=remote.eTag;syncLastPushed=syncPayload();
+    }else{
+      syncBaseline=null;syncLastPushed='';
+    }
+    syncEnabled=true;syncConflict=false;
+    cloudMessage('✓ OneDrive verbunden · automatische Synchronisierung aktiv.');
+    syncInfo('Änderungen werden nach ca. 7 Sekunden automatisch synchronisiert.');
+    if(!remote)scheduleCloudAuto();
+    if(!syncPoll)syncPoll=setInterval(()=>cloudPoll().catch(e=>console.warn('Cloud-Prüfung:',e)),90000);
+  }catch(e){syncReady=false;syncEnabled=false;cloudMessage('Automatische Synchronisierung noch nicht aktiv: '+e.message);}
+}
+async function cloudPoll(){
+  if(!syncEnabled||syncWorking||cloudBusy)return;
+  const root=await cloudRoot(),remote=await cloudFileInfo(root);
+  if(syncBaseline && remote && remote.eTag!==syncBaseline){
+    if(syncPayload()!==syncLastPushed){syncConflict=true;syncEnabled=false;cloudMessage('⚠ Neue Cloud-Daten und ungespeicherte lokale Änderungen: Konflikt. Bitte sichern und manuell abgleichen.');return;}
+    const data=await cloudReadSnapshot(remote);
+    db={units:data.units.map(normalizeUnit),library:data.library,logo:data.logo||''};save();await writeQueue;syncBaseline=remote.eTag;syncLastPushed=syncPayload();logo();render();
+    cloudMessage('✓ Änderungen eines anderen Geräts aus OneDrive geladen.');
+  }
+}
+async function cloudReadSnapshot(file){
+  const resp=await cloudFetch('https://graph.microsoft.com/v1.0/me/drive/items/'+encodeURIComponent(file.id)+'/content');return await resp.json();
+}
+async function cloudWriteSnapshot(root,payload,existing){
+  const bytes=new TextEncoder().encode(payload);
+  const base='https://graph.microsoft.com/v1.0/me/drive/items/'+encodeURIComponent(root.id)+':/'+CLOUD_BACKUP;
+  const headers={'Content-Type':'application/json'};
+  if(existing?.eTag)headers['If-Match']=existing.eTag;
+  else headers['If-None-Match']='*';
+  const session=await(await cloudFetch(base+':/createUploadSession',{method:'POST',headers,body:JSON.stringify({item:{'@microsoft.graph.conflictBehavior':existing?'replace':'fail',name:CLOUD_BACKUP}})})).json();
+  const chunkSize=327680*10;
+  if(!bytes.length)throw Error('Leere Sicherung.');
+  for(let offset=0;offset<bytes.length;){
+    const end=Math.min(bytes.length,offset+chunkSize),part=bytes.slice(offset,end);
+    const response=await fetch(session.uploadUrl,{method:'PUT',headers:{'Content-Range':'bytes '+offset+'-'+(end-1)+'/'+bytes.length},body:part});
+    if(!response.ok)throw Error('Graph Upload HTTP '+response.status+': '+(await response.text()).slice(0,160));offset=end;
+  }
+}
+async function cloudFolder(root,name){
+  const base='https://graph.microsoft.com/v1.0/me/drive/items/'+encodeURIComponent(root.id);
+  try{return await(await cloudFetch(base+':/'+encodeURIComponent(name))).json()}
+  catch(e){if(!String(e).includes('HTTP 404'))throw e;}
+  return await(await cloudFetch(base+'/children',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,folder:{},'@microsoft.graph.conflictBehavior':'fail'})})).json();
+}
+async function cloudMirrorFolders(root){
+  const folders=['Trainingseinheiten','Übungsbibliothek','Taktikboards','Bilder','Backups'];
+  const dirs={};for(const name of folders)dirs[name]=await cloudFolder(root,name);
+  // Individual training and library records for easier inspection. Master JSON remains authoritative.
+  const put=async(dir,name,data)=>{
+    const body=JSON.stringify(data),bytes=new TextEncoder().encode(body);
+    if(bytes.length>3500000)return; // bulky graphics remain in master JSON
+    await cloudFetch('https://graph.microsoft.com/v1.0/me/drive/items/'+encodeURIComponent(dir.id)+':/'+encodeURIComponent(name)+':/content',{method:'PUT',headers:{'Content-Type':'application/json'},body});
+  };
+  for(const u of db.units){await put(dirs.Trainingseinheiten,encodeURIComponent(u.id)+'.json',u);}
+  await put(dirs['Übungsbibliothek'],'Bibliothek.json',db.library);
+  // Large embedded images remain in the master snapshot to avoid partial independent writes.
+}
+
+function cloudPanel(){return `<section class="cloudBox"><h3>☁ Microsoft 365 / OneDrive – Automatische Synchronisierung</h3>
+<p>Nach erfolgreicher Microsoft-Anmeldung werden Änderungen automatisch gesichert. Bei mehreren Geräten wird vor dem Hochladen geprüft, ob neue Cloud-Daten vorliegen.</p>
+<div class="cloudStatus" id="cloudStatus">${esc(cloudMsg)}</div><p id="syncInfo" class="muted" style="font-size:12px">Automatischer Abgleich startet erst nach erfolgreicher Anmeldung und Erstprüfung.</p>
 <div class="cloudButtons"><button id="cloudLogin">Mit Microsoft 365 anmelden</button><button id="cloudTest">Verbindung testen</button><button id="cloudUpload">Daten nach OneDrive hochladen</button><button id="cloudDownload">OneDrive-Daten laden</button></div>
-<p class="cloudWarn">Vor dem ersten Hochladen unbedingt eine JSON-Sicherung herunterladen. Beim Hochladen wird eine bestehende Cloud-Datei nur nach Bestätigung überschrieben. Beim Herunterladen werden lokale Daten nur nach Bestätigung ersetzt.</p>
+<p class="cloudWarn">Bitte vor dem ersten Gerätewechsel eine JSON-Sicherung herunterladen. Wenn Daten auf mehreren Geräten unterschiedlich sind, pausiert die Synchronisierung und verlangt eine Entscheidung.</p>
 </section>`;}
 function cloudMessage(s){cloudMsg=s;const el=$('cloudStatus');if(el)el.textContent=s;}
 function bindCloudPanel(){const actions=[['cloudLogin',cloudLogin],['cloudTest',cloudTest],['cloudUpload',cloudUpload],['cloudDownload',cloudDownload]];for(const [id,fn] of actions){const el=$(id);if(el)el.onclick=fn;}}
@@ -539,6 +651,7 @@ async function cloudInitialize(){
     if(result?.account){cloudAccount=result.account;app.setActiveAccount?.(result.account);cloudMessage('Angemeldet: '+(cloudAccount.username||'Microsoft 365')+'. Jetzt Verbindung testen.');}
     else {cloudAccount=app.getActiveAccount?.()||app.getAllAccounts()[0]||null;if(cloudAccount)cloudMessage('Angemeldet: '+(cloudAccount.username||'Microsoft 365')+'. Jetzt Verbindung testen.');}
     cloudApp=app;
+    if(cloudAccount){const attempt=()=>{if(storageMode==='lade')setTimeout(attempt,500);else cloudStartAuto();};attempt();}
     return app;
   })();
   try{return await cloudInitPromise;}catch(e){cloudInitPromise=null;throw e;}
@@ -550,7 +663,7 @@ async function cloudLogin(){
 async function cloudToken(){const app=await cloudInitialize();if(!cloudAccount)cloudAccount=app.getAllAccounts()[0];if(!cloudAccount)throw Error('Zuerst auf „Mit Microsoft 365 anmelden“ klicken.');try{return (await app.acquireTokenSilent({account:cloudAccount,scopes:CLOUD_SCOPE})).accessToken;}catch(e){const r=await app.acquireTokenPopup({account:cloudAccount,scopes:CLOUD_SCOPE});return r.accessToken;}}
 async function cloudFetch(url,options={}){const token=await cloudToken();const resp=await fetch(url,{...options,headers:{Authorization:'Bearer '+token,...options.headers}});if(!resp.ok){let body=await resp.text().catch(()=> '');throw Error('Microsoft Graph HTTP '+resp.status+': '+body.slice(0,450));}return resp;}
 async function cloudRoot(){return (await (await cloudFetch('https://graph.microsoft.com/v1.0/me/drive/special/approot')).json());}
-async function cloudTest(){try{cloudMessage('Prüfe die Verbindung und den App-Ordner …');const root=await cloudRoot();cloudMessage('Verbindung erfolgreich! OneDrive-App-Ordner: '+(root.name||root.webUrl||'Apps/ALPLA HC Hard Trainingsplaner'));}catch(e){cloudMessage('Verbindung fehlgeschlagen: '+(e?.message||e)+'. Eventuell muss die IT die Berechtigung freigeben.');}}
+async function cloudTest(){try{cloudMessage('Prüfe die Verbindung und den App-Ordner …');const root=await cloudRoot();cloudMessage('Verbindung erfolgreich! OneDrive-App-Ordner: '+(root.name||root.webUrl||'Apps/ALPLA HC Hard Trainingsplaner'));if(!syncEnabled){syncReady=false;await cloudStartAuto();}}catch(e){cloudMessage('Verbindung fehlgeschlagen: '+(e?.message||e)+'. Eventuell muss die IT die Berechtigung freigeben.');}}
 async function cloudFileInfo(root){try{return await(await cloudFetch('https://graph.microsoft.com/v1.0/me/drive/items/'+encodeURIComponent(root.id)+':/'+CLOUD_BACKUP)).json();}catch(e){if(String(e).includes('HTTP 404'))return null;throw e;}}
 async function cloudUpload(){if(cloudBusy)return;cloudBusy=true;try{
   await writeQueue.catch(()=>{});
@@ -567,7 +680,7 @@ async function cloudUpload(){if(cloudBusy)return;cloudBusy=true;try{
     if(!response.ok)throw Error('Upload fehlgeschlagen bei '+offset+': HTTP '+response.status+' '+(await response.text()).slice(0,200));
     offset=end;cloudMessage('Upload: '+Math.round(offset/bytes.length*100)+' %');
   }
-  cloudMessage('✓ Daten erfolgreich in OneDrive gespeichert. Auf anderen Geräten „OneDrive-Daten laden“ verwenden.');
+  const done=await cloudFileInfo(root);syncBaseline=done?.eTag||null;syncLastPushed=syncPayload();syncConflict=false;syncEnabled=true;syncReady=true;cloudMessage('✓ Daten in OneDrive gespeichert · automatische Synchronisierung aktiv.');cloudMirrorFolders(root).catch(console.warn);
 }catch(e){cloudMessage('Upload fehlgeschlagen: '+(e?.message||e));}finally{cloudBusy=false;}}
 async function cloudDownload(){if(cloudBusy)return;cloudBusy=true;try{
   cloudMessage('Suche Cloud-Sicherung …');const root=await cloudRoot();const file=await cloudFileInfo(root);if(!file){cloudMessage('Noch keine Cloud-Sicherung vorhanden. Zuerst auf einem Gerät hochladen.');return;}
@@ -577,7 +690,7 @@ async function cloudDownload(){if(cloudBusy)return;cloudBusy=true;try{
   if(!confirm('Cloud-Sicherung enthält '+incoming.units.length+' Trainingseinheiten und '+incoming.library.length+' Bibliotheksübungen.\n\nALLE lokalen Daten auf diesem Gerät werden durch diese Cloud-Daten ersetzt! Zuerst lokale JSON-Sicherung herunterladen. Fortfahren?'))return;
   const old=deep(db);db={units:incoming.units.map(normalizeUnit),library:incoming.library,logo:incoming.logo||''};
   const ok=save();if(!ok){db=old;throw Error('Lokales Speichern ist fehlgeschlagen. Daten wurden nicht dauerhaft übernommen.');}
-  logo();render();cloudMessage('✓ Cloud-Sicherung geladen. Änderungen auf diesem Gerät anschließend manuell wieder nach OneDrive hochladen.');
+  await writeQueue;syncBaseline=file.eTag;syncLastPushed=syncPayload();syncConflict=false;syncEnabled=true;syncReady=true;logo();render();cloudMessage('✓ Cloud-Sicherung geladen · automatische Synchronisierung aktiv.');
 }catch(e){cloudMessage('Laden fehlgeschlagen: '+(e?.message||e));}finally{cloudBusy=false;}}
 
 function render(){
