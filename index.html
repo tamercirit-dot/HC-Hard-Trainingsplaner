@@ -263,7 +263,7 @@ window.deleteLib=id=>{if(confirm('Übung aus Bibliothek löschen? Bestehende Tra
 function preview(){
   const u=unit(); if(!u)return '';
   const total=u.exercises.reduce((n,x)=>n+(Number(x.minutes)||0),0);
-  return `<div class="toolbar noprint"><button onclick="mode='units';navigate('editor')">← Zurück zur Bearbeitung</button><button class="primary" onclick="window.print()">PDF drucken / als PDF speichern</button><button onclick="uploadClubLogo()">Vereinslogo hochladen</button><button onclick="navigate('units')">Meine Einheiten</button></div>
+  return `<div class="toolbar noprint"><button onclick="mode='units';navigate('editor')">← Zurück zur Bearbeitung</button><button class="primary" onclick="window.print()">PDF drucken / als PDF speichern</button><button class="primary" onclick="archivePdfToCloud()">Als PDF in OneDrive archivieren</button><button onclick="uploadClubLogo()">Vereinslogo hochladen</button><button onclick="navigate('units')">Meine Einheiten</button></div>
   <article class="preview"><div class="printhead"><div style="display:flex;align-items:center;gap:18px"><div class="printLogo">${db.logo?`<img src="${db.logo}" alt="ALPLA HC Hard Vereinslogo">`:'<span>HC<br>HARD</span>'}</div><div><small>ALPLA HC HARD · TRAININGSPLAN</small><h1>${esc(u.title)}</h1></div></div></div>
   <div class="printmeta"><div><small>DATUM / UHRZEIT</small><br><b>${formatDate(u.date)} · ${esc(u.time)}</b></div><div><small>HALLE</small><br><b>${esc(u.hall||'–')}</b></div><div><small>DAUER / ÜBUNGEN</small><br><b>${total} Min. / ${u.exercises.length}</b></div></div>
   ${u.notes?`<p><b>Bemerkungen / Ziele:</b><br>${esc(u.notes).replace(/\n/g,'<br>')}</p>`:''}
@@ -596,19 +596,100 @@ async function cloudFolder(root,name){
   catch(e){if(!String(e).includes('HTTP 404'))throw e;}
   return await(await cloudFetch(base+'/children',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,folder:{},'@microsoft.graph.conflictBehavior':'fail'})})).json();
 }
-async function cloudMirrorFolders(root){
-  const folders=['Trainingseinheiten','Übungsbibliothek','Taktikboards','Bilder','Backups'];
-  const dirs={};for(const name of folders)dirs[name]=await cloudFolder(root,name);
-  // Individual training and library records for easier inspection. Master JSON remains authoritative.
-  const put=async(dir,name,data)=>{
-    const body=JSON.stringify(data),bytes=new TextEncoder().encode(body);
-    if(bytes.length>3500000)return; // bulky graphics remain in master JSON
-    await cloudFetch('https://graph.microsoft.com/v1.0/me/drive/items/'+encodeURIComponent(dir.id)+':/'+encodeURIComponent(name)+':/content',{method:'PUT',headers:{'Content-Type':'application/json'},body});
-  };
-  for(const u of db.units){await put(dirs.Trainingseinheiten,encodeURIComponent(u.id)+'.json',u);}
-  await put(dirs['Übungsbibliothek'],'Bibliothek.json',db.library);
-  // Large embedded images remain in the master snapshot to avoid partial independent writes.
+async function cloudUploadFile(parent,name,blob,type){
+  const base='https://graph.microsoft.com/v1.0/me/drive/items/'+encodeURIComponent(parent.id)+':/'+encodeURIComponent(name);
+  if(blob.size<=4*1024*1024){
+    return await(await cloudFetch(base+':/content',{method:'PUT',headers:{'Content-Type':type},body:blob})).json();
+  }
+  const session=await(await cloudFetch(base+':/createUploadSession',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({item:{'@microsoft.graph.conflictBehavior':'replace',name}})})).json();
+  const bytes=new Uint8Array(await blob.arrayBuffer()),chunk=327680*10;
+  let result=null;
+  for(let i=0;i<bytes.length;i+=chunk){
+    const end=Math.min(bytes.length,i+chunk);
+    const resp=await fetch(session.uploadUrl,{method:'PUT',headers:{'Content-Range':`bytes ${i}-${end-1}/${bytes.length}`},body:bytes.slice(i,end)});
+    if(!resp.ok)throw Error('Datei-Upload fehlgeschlagen: HTTP '+resp.status);
+    result=await resp.json();
+  }
+  return result;
 }
+function safeName(value){return String(value||'Training').normalize('NFKD').replace(/[\\/:*?"<>|\x00-\x1f]/g,'-').replace(/[^a-zA-Z0-9äöüÄÖÜß _.-]/g,'-').replace(/\s+/g,' ').trim().slice(0,90)||'Training';}
+function dataBlob(uri){const [head,base64]=uri.split(',');if(!base64)throw Error('Bilddaten fehlen');const kind=/data:([^;]+)/.exec(head)?.[1]||'image/png';const binary=atob(base64);const arr=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)arr[i]=binary.charCodeAt(i);return new Blob([arr],{type:kind});}
+function folderKey(cat){return safeName(cat||'Sonstiges');}
+async function cloudMirrorFolders(root){
+  // Trainingseinheiten: bewusst keine JSON-Kopien erzeugen. PDFs nur beim Abschluss.
+  const tacticFolder=await cloudFolder(root,'Taktikboards');
+  const libraryFolder=await cloudFolder(root,'Übungsbibliothek');
+  await cloudFolder(root,'Trainingseinheiten');
+  await cloudFolder(root,'Backups');
+  const cats=new Map();
+  for(const ex of db.library){
+    const key=folderKey(ex.category);
+    if(!cats.has(key))cats.set(key,await cloudFolder(libraryFolder,key));
+    const body=new Blob([JSON.stringify(ex)],{type:'application/json'});
+    await cloudUploadFile(cats.get(key),safeName(ex.title)+'_'+ex.id+'.json',body,'application/json');
+  }
+  // Taktikboards aus Einheiten und Bibliothek als sichtbare PNGs.
+  const seen=new Set();
+  for(const ex of [...db.library,...db.units.flatMap(u=>u.exercises||[])]){
+    if(!ex.tactic?.image||seen.has(ex.id))continue;
+    seen.add(ex.id);
+    const blob=dataBlob(ex.tactic.image);
+    await cloudUploadFile(tacticFolder,safeName(ex.title)+'_'+ex.id+'.png',blob,blob.type);
+  }
+}
+async function loadDataImage(url){return await new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(Error('Bild kann nicht geladen werden'));im.src=url;});}
+// Erzeugt ohne externe Bibliothek ein mehrseitiges A4-PDF aus JPEG-gerenderten Seiten.
+async function makeTrainingPdf(u){
+  const W=1240,H=1754,margin=85,usable=W-2*margin;
+  let pages=[],canvas,ctx,y;
+  function newPage(){canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);ctx.fillStyle='#0f172a';ctx.font='24px Arial';y=100;pages.push(canvas);}
+  function line(text,size=24,bold=false,color='#162237',gap=12){ctx.font=(bold?'bold ':'')+size+'px Arial';ctx.fillStyle=color;ctx.fillText(text,margin,y);y+=size+gap;}
+  function wrap(text,max=usable,size=24,bold=false){ctx.font=(bold?'bold ':'')+size+'px Arial';const out=[];for(const paragraph of String(text||'').split('\n')){let st='';for(const word of paragraph.split(/\s+/)){if(ctx.measureText(st?st+' '+word:word).width>max && st){out.push(st);st=word;}else st=st?st+' '+word:word;}out.push(st);}return out;}
+  function ensure(n){if(y+n>H-95)newPage();}
+  async function drawImg(src){if(!src)return;const im=await loadDataImage(src);const scale=Math.min(usable/im.width,530/im.height);const iw=im.width*scale,ih=im.height*scale;ensure(ih+32);ctx.drawImage(im,margin,y,iw,ih);y+=ih+25;}
+  newPage();line('ALPLA HC HARD · TRAININGSPLAN',27,true,'#de071c',26);ensure(65);for(const t of wrap(u.title,usable,42,true)){line(t,42,true,'#10213b',18);}y+=14;
+  ctx.fillStyle='#d90a1c';ctx.fillRect(margin,y,usable,5);y+=45;
+  for(const t of wrap(`Datum: ${formatDate(u.date)}   Uhrzeit: ${u.time||'-'}`,usable,23)){ensure(44);line(t,23);}
+  for(const t of wrap('Halle: '+(u.hall||'-'),usable,23)){ensure(44);line(t,23);}
+  const total=u.exercises.reduce((v,e)=>v+(Number(e.minutes)||0),0);
+  line(`Dauer: ${total} Minuten     Übungen: ${u.exercises.length}`,23);y+=16;
+  if(u.notes){for(const t of wrap('Bemerkungen: '+u.notes)){ensure(44);line(t,23);}}
+  ensure(70);line('Trainingsablauf',32,true,'#10213b',24);
+  for(let i=0;i<u.exercises.length;i++){
+    const ex=u.exercises[i];ensure(110);ctx.fillStyle='#334155';ctx.fillRect(margin,y,usable,5);y+=45;
+    for(const t of wrap(`${i+1}. ${ex.title} (${Number(ex.minutes)||0} Min.)`,usable,29,true)){ensure(52);line(t,29,true);}
+    ensure(42);line(ex.category||'',22,false,'#64748b');
+    if(ex.notes){for(const t of wrap(ex.notes)){ensure(38);line(t,22);}}
+    await drawImg(ex.image);await drawImg(ex.tactic?.image);
+    y+=18;
+  }
+  const enc=new TextEncoder();const objects=[null];
+  const add=v=>{objects.push(v);return objects.length-1};
+  const imageRefs=[];
+  for(const c of pages){const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.82));const bytes=new Uint8Array(await blob.arrayBuffer());const header=enc.encode(`<< /Type /XObject /Subtype /Image /Width ${W} /Height ${H} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${bytes.length} >>\nstream\n`);const tail=enc.encode('\nendstream');const combined=new Uint8Array(header.length+bytes.length+tail.length);combined.set(header);combined.set(bytes,header.length);combined.set(tail,header.length+bytes.length);imageRefs.push(add(combined));}
+  const pagesRef=add('');const pageRefs=[];
+  imageRefs.forEach(ir=>{const content=enc.encode('q\n595 0 0 842 0 0 cm\n/Im0 Do\nQ\n');const contentRef=add(`<< /Length ${content.length} >>\nstream\n${new TextDecoder().decode(content)}endstream`);pageRefs.push(add(`<< /Type /Page /Parent ${pagesRef} 0 R /MediaBox [0 0 595 842] /Resources << /XObject << /Im0 ${ir} 0 R >> >> /Contents ${contentRef} 0 R >>`));});
+  objects[pagesRef]=`<< /Type /Pages /Count ${pageRefs.length} /Kids [${pageRefs.map(i=>i+' 0 R').join(' ')}] >>`;
+  const catRef=add(`<< /Type /Catalog /Pages ${pagesRef} 0 R >>`);
+  let parts=[enc.encode('%PDF-1.4\n')],offset=parts[0].length;const offsets=[0];
+  for(let i=1;i<objects.length;i++){offsets[i]=offset;let bytes=objects[i] instanceof Uint8Array?objects[i]:enc.encode(objects[i]);const start=enc.encode(`${i} 0 obj\n`),end=enc.encode('\nendobj\n');parts.push(start,bytes,end);offset+=start.length+bytes.length+end.length;}
+  const xref=offset;let txt=`xref\n0 ${objects.length}\n0000000000 65535 f \n`;for(let i=1;i<objects.length;i++)txt+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';txt+=`trailer\n<< /Size ${objects.length} /Root ${catRef} 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  parts.push(enc.encode(txt));return new Blob(parts,{type:'application/pdf'});
+}
+window.archivePdfToCloud=async()=>{
+ const u=unit();if(!u)return;
+ if(!cloudAccount){alert('Bitte zuerst mit Microsoft 365 anmelden.');return;}
+ if(!syncEnabled||syncConflict){alert('OneDrive-Synchronisierung ist nicht aktiv oder es besteht ein Konflikt. Bitte zuerst die Verbindung prüfen.');return;}
+ if(!confirm(`Training vom ${formatDate(u.date)} als PDF im OneDrive-Ordner „Trainingseinheiten“ archivieren?`))return;
+ try{
+  await writeQueue;
+  const pdf=await makeTrainingPdf(u);
+  const root=await cloudRoot(),dir=await cloudFolder(root,'Trainingseinheiten');
+  const filename=(u.date||today())+'_'+safeName(u.title)+'_'+u.id.slice(0,7)+'.pdf';
+  await cloudUploadFile(dir,filename,pdf,'application/pdf');
+  alert('PDF erfolgreich in OneDrive archiviert: '+filename+'\nDas Training bleibt in der App bearbeitbar.');
+ }catch(e){alert('PDF-Archivierung fehlgeschlagen: '+(e?.message||e));}
+};
 
 function cloudPanel(){return `<section class="cloudBox"><h3>☁ Microsoft 365 / OneDrive – Automatische Synchronisierung</h3>
 <p>Nach erfolgreicher Microsoft-Anmeldung werden Änderungen automatisch gesichert. Bei mehreren Geräten wird vor dem Hochladen geprüft, ob neue Cloud-Daten vorliegen.</p>
