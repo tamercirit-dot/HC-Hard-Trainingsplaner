@@ -21,7 +21,7 @@ button:hover{border-color:var(--red)}button.active,button.primary{background:var
 button.ghost{background:#f8fafc}
 .container{max-width:1280px;padding:28px 22px;margin:auto}
 h1{font-size:30px;margin:0 0 7px}h2{margin:0 0 18px;font-size:21px}.sub{color:var(--muted);margin:0 0 25px}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.toolbar input,.toolbar select{max-width:280px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.toolbar input,.toolbar select{max-width:280px}.searchFilters{align-items:end}.searchFilters>div{min-width:150px}.searchFilters label{margin:0 0 6px}.searchFilters input[type=date]{width:170px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}.card,.panel{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 2px 2px #13233a09;padding:23px}.card{min-height:220px;display:flex;flex-direction:column}
 .card h3{font-size:19px;margin:20px 0 8px}.meta{margin-top:auto;display:flex;justify-content:space-between;padding-top:22px;border-top:1px solid var(--line);font-size:13px}.muted,small{color:var(--muted)}
 .tag{font-size:11px;color:var(--red);background:#fff0f1;border-radius:5px;padding:5px 8px;font-weight:bold;display:inline-block}.actions{display:flex;gap:7px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}.actions button{padding:8px 10px;font-size:12px}.new{border:2px dashed #cbd3df;background:transparent;display:flex;align-items:center;justify-content:center;gap:10px;min-height:220px;color:var(--red);font-weight:bold}
@@ -37,19 +37,76 @@ input,select,textarea{width:100%;padding:12px;border:1px solid #dbe1e9;border-ra
 @media print{body{background:white}.top,.noprint,.toolbar,.foot{display:none!important}.container{max-width:none;margin:0;padding:0}.preview{max-width:none;border:none;padding:0}.printEx{break-inside:avoid} @page{size:A4;margin:14mm}}
 
 .cloudBox{margin:16px 0;padding:18px;background:#fff;border:1px solid #dbe1e9;border-radius:16px}.cloudBox h3{margin:0 0 6px}.cloudBox p{margin:8px 0;color:#536077;font-size:13px}.cloudStatus{background:#f3f6fb;border-radius:8px;padding:10px;font-size:13px;margin:10px 0}.cloudButtons{display:flex;gap:8px;flex-wrap:wrap}.cloudBox button{font-size:13px}.cloudWarn{background:#fff8eb;color:#865b17;border-radius:8px;padding:9px;font-size:12px}.cloudHidden{display:none}
+
+/* V27: aufgeräumte Startseite, ohne Änderungen an der Datenspeicherung */
+.homeQuick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:22px 0 24px}
+.quickCard{display:flex;align-items:center;gap:15px;text-align:left;min-height:102px;border-radius:18px;border:1px solid var(--line);background:#fff;padding:18px;color:var(--ink);box-shadow:0 2px 5px #13233a09}
+.quickCard:hover{border-color:var(--red);box-shadow:0 5px 15px #13233a12}
+.quickIcon{display:grid;place-items:center;flex:none;width:46px;height:46px;border-radius:13px;background:#fff0f1;color:var(--red);font-size:24px}
+.quickCard strong{font-size:17px;display:block}.quickCard small{display:block;margin-top:5px;font-weight:normal;font-size:12px}
+.homeManage{border:1px solid var(--line);border-radius:18px;background:#fff;margin:18px 0 24px;padding:0 20px;overflow:hidden}
+.homeManage>summary{cursor:pointer;list-style:none;padding:20px 2px;font-size:17px;font-weight:700;display:flex;align-items:center;gap:11px}
+.homeManage>summary::-webkit-details-marker{display:none}.homeManage>summary::after{content:'▾';margin-left:auto;color:var(--muted)}
+.homeManage[open]>summary::after{content:'▴'}
+.homeManage .toolbar{margin:6px 0 20px}.homeManage .toolbar input{max-width:280px}
+.homeManage .cloudFrame{padding-bottom:18px}.homeManage .cloudFrame>*{margin-top:8px}
+.homeManage .manageExplanation{font-size:13px;color:var(--muted);line-height:1.5}
+.homeManage .cloudFrame>section,.homeManage .cloudFrame>.panel{margin-top:10px}
+.unitTitleRow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+@media(max-width:800px){.homeQuick{grid-template-columns:1fr}.quickCard{min-height:80px}.homeManage{padding:0 13px}}
+
+/* V28 – Dropdown-Navigation im Stil der bereitgestellten Vorlage */
+.mainNav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mainNav>button,.navDropToggle{border:0;background:transparent;color:#596476;font-size:14px;padding:12px 13px;border-radius:10px}
+.mainNav>button.active,.navDropToggle[aria-expanded="true"]{background:#f2f4f8;color:var(--ink)}
+.mainNav>button.primary{background:var(--red);color:#fff;padding:12px 16px}
+.navDropdown{position:relative}
+.navDropToggle{white-space:nowrap;display:flex;align-items:center;gap:8px;font-weight:700}
+.navDropdownPanel{position:absolute;right:0;top:calc(100% + 12px);width:340px;max-width:min(90vw,340px);max-height:min(72vh,620px);overflow:auto;padding:11px;background:#fff;border:1px solid var(--line);box-shadow:0 15px 45px #14223b25;border-radius:22px;z-index:80}
+.navDropdownPanel[hidden]{display:none!important}
+.navDropdownPanel button{display:flex;align-items:center;gap:14px;text-align:left;border:0;background:#fff;width:100%;padding:14px 12px;font-weight:normal;border-radius:13px}
+.navDropdownPanel button:hover,.navDropdownPanel button:focus-visible{background:#f2f4f8}
+.navDropdownPanel strong{display:block;font-size:15px;color:var(--ink)}
+.navDropdownPanel small{display:block;margin-top:5px;font-size:12px;color:var(--muted)}
+.navMenuIcon{display:grid;place-items:center;flex:none;width:45px;height:45px;border-radius:12px;background:#f0f2f6;color:#536073;font-size:23px}
+@media(max-width:600px){.mainNav{justify-content:center}.navDropdown{position:static}.mainNav{position:relative}.navDropdownPanel{right:0;top:100%;width:min(340px,calc(100vw - 25px))}}
+
+.mainNav{gap:0!important}.navDropToggle{font-size:15px!important;padding:10px 16px!important;border:1px solid var(--line)!important;border-radius:12px!important;background:#fff!important;color:var(--ink)!important;font-weight:700!important}.mainNav .navDropdownPanel{z-index:90}.homeManage{margin-top:22px}.cards{margin-top:16px}.container>h1{margin-bottom:8px}.sub{margin-bottom:16px}
+
+/* V31: Verwaltung nur noch als separat geöffnetes Overlay – nicht mehr unter den Trainingsplänen */
+.homeManage{display:none;position:fixed;z-index:210;left:50%;top:50%;transform:translate(-50%,-50%);width:min(920px,calc(100vw - 28px));max-height:calc(100vh - 42px);overflow:auto;background:#fff;padding:22px;border:1px solid var(--line);border-radius:19px;box-shadow:0 20px 0 100vmax rgba(14,24,42,.48),0 18px 60px #0003;margin:0}
+.adminModalOpen .homeManage{display:block}
+.managementHeader{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.managementHeader h2{margin:0}.managementHeader button{flex:none}
 </style>
 </head>
 <body>
 <header class="top noprint">
   <div class="brand">
     <div class="logo" id="brandLogo">HC<br>HARD</div>
-    <div><strong>ALPLA HC Hard</strong><small>Trainingsplanung</small></div>
+    <div><strong id="brandClubName">ALPLA HC Hard</strong><small>Trainingsplanung</small></div>
   </div>
-  <nav>
-    <button data-page="units" class="active">Meine Einheiten</button>
-    <button data-page="archive">Archiv</button>
-    <button data-page="library">Übungsbibliothek</button>
-    <button data-page="editor" class="primary">+ Neue Einheit</button>
+  <nav class="mainNav" aria-label="Hauptnavigation">
+    <div class="navDropdown" id="navDropdown">
+      <button type="button" id="navDropdownToggle" class="navDropToggle" aria-expanded="false" aria-controls="navDropdownPanel">▦ Alle Inhalte <span aria-hidden="true">⌄</span></button>
+      <div class="navDropdownPanel" id="navDropdownPanel" hidden>
+        <button type="button" data-menu-page="units"><span class="navMenuIcon">▤</span><span><strong>Meine Trainingseinheiten</strong><small>Alle aktuellen Trainingspläne</small></span></button>
+        <button type="button" data-menu-page="archive"><span class="navMenuIcon">▣</span><span><strong>Archiv</strong><small>Vergangene Trainingseinheiten</small></span></button>
+        <button type="button" data-menu-page="library"><span class="navMenuIcon">▦</span><span><strong>Übungsbibliothek</strong><small>Übungen nach Kategorien</small></span></button>
+        <button type="button" id="navManage"><span class="navMenuIcon">⚙</span><span><strong>Verwaltung &amp; OneDrive</strong><small>Synchronisierung, Backups und Logo</small></span></button>
+      </div>
+    </div>
+    <div class="navDropdown" id="adminDropdown">
+      <button type="button" id="adminDropdownToggle" class="navDropToggle" aria-expanded="false" aria-controls="adminDropdownPanel">⚙ Verwaltung &amp; OneDrive <span aria-hidden="true">⌄</span></button>
+      <div class="navDropdownPanel" id="adminDropdownPanel" hidden>
+        <button type="button" data-admin-action="cloud"><span class="navMenuIcon">☁</span><span><strong>OneDrive-Synchronisierung</strong><small>Verbindung und Cloud-Status anzeigen</small></span></button>
+        <button type="button" data-admin-action="backup"><span class="navMenuIcon">↓</span><span><strong>Datensicherung herunterladen</strong><small>Alle Trainingsdaten als JSON sichern</small></span></button>
+        <button type="button" data-admin-action="restore"><span class="navMenuIcon">↶</span><span><strong>Sicherung wiederherstellen</strong><small>Frühere lokale Version wählen</small></span></button>
+        <button type="button" data-admin-action="import"><span class="navMenuIcon">↑</span><span><strong>Datensicherung importieren</strong><small>JSON-Sicherung einlesen</small></span></button>
+        <button type="button" data-admin-action="logo"><span class="navMenuIcon">▧</span><span><strong>Vereinslogo</strong><small>Logo hochladen oder ersetzen</small></span></button>
+        <button type="button" data-admin-action="club"><span class="navMenuIcon">✎</span><span><strong>Vereinsnamen ändern</strong><small>Überall in der App anzeigen</small></span></button>
+      </div>
+    </div>
   </nav>
 </header>
 <main class="container" id="app"></main>
@@ -58,11 +115,11 @@ input,select,textarea{width:100%;padding:12px;border:1px solid #dbe1e9;border-ra
 'use strict';
 const CATEGORIES=['Kraft','Ausdauer','Schnelligkeit','Technik','MAPS','Aufwärmspiele','Taktik','Kleingruppenspiel (KGS)','Passkontinuum','Grundspiel','PMÜ','TW-Übung','Teambuilding','Wurftraining','Abwehr','Angriff','Warm-Up'].sort((a,b)=>a.localeCompare(b,'de',{sensitivity:'base'}));
 const STORE='hchard_training_v1';
-const DEFAULT={units:[],library:[],logo:''};
+const DEFAULT={units:[],library:[],logo:'',clubName:'ALPLA HC Hard'};
 let db;
 try{db=JSON.parse(localStorage.getItem(STORE))||structuredClone(DEFAULT)}catch(e){db=structuredClone(DEFAULT)}
-db.units ||= []; db.library ||= []; db.logo ||= '';
-let page='units',current=null,mode='units',search='',category='Alle';
+db.units ||= []; db.library ||= []; db.logo ||= ''; db.clubName ||= 'ALPLA HC Hard';
+let page='units',current=null,mode='units',search='',category='Alle',dateFrom='',dateTo='';
 const $=id=>document.getElementById(id);
 const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -153,38 +210,66 @@ async function storageInformation(){
 }
 window.storageInformation=storageInformation;
 
-function logo(){if(db.logo && $('brandLogo')) $('brandLogo').innerHTML=`<img alt="Vereinslogo" src="${db.logo}">`;}
+function logo(){if(db.logo && $('brandLogo')) $('brandLogo').innerHTML=`<img alt="Vereinslogo" src="${db.logo}">`;if($('brandClubName'))$('brandClubName').textContent=db.clubName||'ALPLA HC Hard';document.title=(db.clubName||'ALPLA HC Hard')+' – Trainingsplaner';}
+window.editClubName=function(){const name=prompt('Neuer Vereinsname (für App, Trainingspläne und PDF):',db.clubName||'ALPLA HC Hard');if(name===null)return;const clean=name.trim();if(!clean){alert('Bitte einen Vereinsnamen eingeben.');return;}if(clean.length>100){alert('Bitte maximal 100 Zeichen eingeben.');return;}db.clubName=clean;save();logo();render();};
 function unit(){return db.units.find(u=>u.id===current)}
 function normalizeExercise(x){x.image ||= ''; x.notes ||= ''; x.category ||= 'Technik'; x.minutes = Number(x.minutes)||0; x.tactic ||= null; return x}
 function normalizeUnit(u){u.exercises ||= []; u.exercises=u.exercises.map(normalizeExercise); return u}
 db.units=db.units.map(normalizeUnit);
 logo();
 
-function navigate(p){ if(storageMode==='lade')return; if(p==='editor' && !current){ newUnit(); return; } page=p; document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===p)); render(); window.scrollTo(0,0)}
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>b.dataset.page==='editor'?newUnit():navigate(b.dataset.page));
+function closeNavMenu(){for(const [panelId,toggleId] of [['navDropdownPanel','navDropdownToggle'],['adminDropdownPanel','adminDropdownToggle']]){const panel=$(panelId),toggle=$(toggleId);if(panel&&toggle){panel.hidden=true;toggle.setAttribute('aria-expanded','false');}}}
+function openManagementPanel(){navigate('units');document.body.classList.add('adminModalOpen');} function closeManagementPanel(){document.body.classList.remove('adminModalOpen');}
+function runAdminAction(action){closeNavMenu();if(action==='cloud'){openManagementPanel();return;}if(action==='backup'){exportData();return;}if(action==='restore'){restoreSnapshots();return;}if(action==='import'){openManagementPanel();$('jsonFile')?.click();return;}if(action==='logo'){uploadClubLogo();return;}if(action==='club'){editClubName();return;}}
+function navigate(p){ if(storageMode==='lade')return; closeNavMenu(); if(p==='editor' && !current){ newUnit(); return; } page=p; document.querySelectorAll('.mainNav > button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===p)); render(); window.scrollTo(0,0)}
+document.querySelectorAll('.mainNav > button[data-page]').forEach(b=>b.onclick=()=>b.dataset.page==='editor'?newUnit():navigate(b.dataset.page));
+$('navDropdownToggle').addEventListener('click',()=>{const panel=$('navDropdownPanel');const wasOpen=!panel.hidden;closeNavMenu();panel.hidden=wasOpen;$('navDropdownToggle').setAttribute('aria-expanded',String(!panel.hidden));});
+$('adminDropdownToggle').addEventListener('click',()=>{const panel=$('adminDropdownPanel');const wasOpen=!panel.hidden;closeNavMenu();panel.hidden=wasOpen;$('adminDropdownToggle').setAttribute('aria-expanded',String(!panel.hidden));});
+document.querySelectorAll('[data-admin-action]').forEach(b=>b.addEventListener('click',()=>runAdminAction(b.dataset.adminAction)));
+document.querySelectorAll('[data-menu-page]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.menuPage)));
+$('navManage').addEventListener('click',openManagementPanel);
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#navDropdown')&&!e.target.closest('#adminDropdown'))closeNavMenu();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeNavMenu();});
 function newUnit(){ if(storageMode==='lade')return; const u={id:uid(),title:'Meine Trainingseinheit',date:today(),time:'18:00',hall:'',notes:'',archived:false,exercises:[]}; db.units.unshift(u); current=u.id; save(); navigate('editor'); }
 
 function cards(archived){
-  const all=db.units.filter(u=>!!u.archived===archived).filter(u=>(u.title+' '+u.hall+' '+u.notes).toLowerCase().includes(search.toLowerCase())).sort((a,b)=>b.date.localeCompare(a.date));
-  return `<h1>${archived?'Archiv':'Meine Trainingseinheiten'}</h1><p class="sub">${archived?'Abgeschlossene Einheiten wiederfinden und erneut verwenden.':'Alle Trainings planen, ansehen und bearbeiten.'}</p>
-  <div class="toolbar">
-    <input id="findUnits" placeholder="Einheiten suchen…" value="${esc(search)}">
-    <button id="backup">Datensicherung herunterladen</button>
-    <button id="restoreSnapshots">Automatische Sicherung wiederherstellen</button>
-    <button id="import">Datensicherung importieren</button>
-    <input class="hide" type="file" id="jsonFile" accept="application/json,.json">
-    <button id="setLogo">Vereinslogo hochladen</button>
-    <input class="hide" type="file" id="logoFile" accept="image/*">
+  const query=search.trim().toLocaleLowerCase('de');
+  const all=db.units.filter(u=>!!u.archived===archived).filter(u=>{
+    const searchable=[u.title,u.hall,u.notes,formatDate(u.date),u.date,...(u.exercises||[]).flatMap(x=>[x.title,x.category,x.notes])].join(' ').toLocaleLowerCase('de');
+    return (!query||searchable.includes(query))&&(!dateFrom||u.date>=dateFrom)&&(!dateTo||u.date<=dateTo);
+  }).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const activeCount=db.units.filter(u=>!u.archived).length, archiveCount=db.units.filter(u=>!!u.archived).length;
+  return `<h1>${archived?'Archiv':'Meine Trainingseinheiten'}</h1><p class="sub">${archived?'Abgeschlossene Trainings ansehen und wiederverwenden.':'Trainingseinheiten verwalten, Übungen sammeln und Taktikboards planen.'}</p>
+  
+  <div class="toolbar searchFilters">
+    <input id="findUnits" aria-label="Trainingseinheiten und Übungen suchen" placeholder="Titel, Übung, Kategorie, Stichwort…" value="${esc(search)}">
+    <div><label for="unitDateFrom">Von</label><input id="unitDateFrom" type="date" value="${esc(dateFrom)}"></div>
+    <div><label for="unitDateTo">Bis</label><input id="unitDateTo" type="date" value="${esc(dateTo)}"></div>
+    <button id="clearUnitFilters" type="button">Filter zurücksetzen</button>
   </div>
-  <p class="muted" style="font-size:13px;margin-top:-8px">Automatische Sicherung: Änderungen werden lokal gespeichert und zusätzlich in bis zu 10 Wiederherstellungspunkten gesichert. Für echten Schutz bei PC-/Browserwechsel bitte regelmäßig eine JSON-Sicherung herunterladen (z. B. nach OneDrive).</p>
-  ${cloudPanel()}
   <div class="cards">
-    ${all.map(u=>`<article class="card"><span class="tag">ALPLA HC Hard</span><h3>${esc(u.title)}</h3><p class="muted">${esc(u.hall||'Halle noch nicht eingetragen')}</p><div class="meta"><div><small>ÜBUNGEN</small><br><b>${u.exercises.length}</b></div><div><small>DATUM</small><br><b>${formatDate(u.date)}</b></div></div><div class="actions"><button onclick="editUnit('${u.id}')">Bearbeiten</button><button onclick="openPreview('${u.id}')">PDF</button><button onclick="cloneUnit('${u.id}')">Kopieren</button><button onclick="archiveUnit('${u.id}')">${archived?'Aktivieren':'Archivieren'}</button><button onclick="deleteUnit('${u.id}')">Löschen</button></div></article>`).join('')}
+    ${all.map(u=>`<article class="card"><span class="tag">${esc(db.clubName)}</span><h3>${esc(u.title)}</h3><p class="muted">${esc(u.hall||'Halle noch nicht eingetragen')}</p><div class="meta"><div><small>ÜBUNGEN</small><br><b>${u.exercises.length}</b></div><div><small>DATUM</small><br><b>${formatDate(u.date)}</b></div></div><div class="actions"><button onclick="editUnit('${u.id}')">Bearbeiten</button><button onclick="openPreview('${u.id}')">PDF</button><button onclick="cloneUnit('${u.id}')">Kopieren</button><button onclick="archiveUnit('${u.id}')">${archived?'Aktivieren':'Archivieren'}</button><button onclick="deleteUnit('${u.id}')">Löschen</button></div></article>`).join('')}
     ${!archived?'<button class="new" onclick="newUnit()">＋ Neue Trainingseinheit</button>':''}
-  </div>`;
+  </div>
+  <section class="homeManage" role="dialog" aria-modal="true" aria-label="Verwaltung und OneDrive"><div class="managementHeader"><h2>⚙ Verwaltung &amp; OneDrive</h2><button type="button" onclick="closeManagementPanel()">Schließen ×</button></div>
+    <p class="manageExplanation">Hier findest du die bisherigen Funktionen zum Sichern, Wiederherstellen und Synchronisieren. Sie bleiben unverändert verfügbar.</p>
+    <div class="toolbar">
+      <button id="backup">Datensicherung herunterladen</button>
+      <button id="restoreSnapshots">Automatische Sicherung wiederherstellen</button>
+      <button id="import">Datensicherung importieren</button>
+      <input class="hide" type="file" id="jsonFile" accept="application/json,.json">
+      <button id="setLogo">Vereinslogo hochladen</button><button type="button" onclick="editClubName()">Vereinsnamen ändern</button>
+      <input class="hide" type="file" id="logoFile" accept="image/*">
+    </div>
+    <p class="muted" style="font-size:12px">Lokale Sicherung und bis zu 10 Wiederherstellungspunkte. Zusätzlich regelmäßig eine JSON-Sicherung herunterladen.</p>
+    <div class="cloudFrame">${cloudPanel()}</div>
+  </section>`;
 }
 function bindCards(){bindCloudPanel();setStorageStatus(storageError?'Speicherung fehlgeschlagen':storageMode==='indexeddb'?'Gespeichert in IndexedDB':'Alter lokaler Speicher',!!storageError);
   $('findUnits').oninput=e=>{search=e.target.value;const pos=e.target.selectionStart;render();$('findUnits').focus();$('findUnits').setSelectionRange(pos,pos)};
+  $('unitDateFrom').onchange=e=>{dateFrom=e.target.value;render()};
+  $('unitDateTo').onchange=e=>{dateTo=e.target.value;render()};
+  $('clearUnitFilters').onclick=()=>{search='';dateFrom='';dateTo='';render()};
   $('backup').onclick=exportData;
   $('restoreSnapshots').onclick=restoreSnapshots;
   $('import').onclick=()=>$('jsonFile').click();
@@ -264,12 +349,12 @@ function preview(){
   const u=unit(); if(!u)return '';
   const total=u.exercises.reduce((n,x)=>n+(Number(x.minutes)||0),0);
   return `<div class="toolbar noprint"><button onclick="mode='units';navigate('editor')">← Zurück zur Bearbeitung</button><button class="primary" onclick="window.print()">PDF drucken / als PDF speichern</button><button class="primary" onclick="archivePdfToCloud()">Als PDF in OneDrive archivieren</button><button onclick="uploadClubLogo()">Vereinslogo hochladen</button><button onclick="navigate('units')">Meine Einheiten</button></div>
-  <article class="preview"><div class="printhead"><div style="display:flex;align-items:center;gap:18px"><div class="printLogo">${db.logo?`<img src="${db.logo}" alt="ALPLA HC Hard Vereinslogo">`:'<span>HC<br>HARD</span>'}</div><div><small>TRAININGSPLAN</small><h1>${esc(u.title)}</h1></div></div></div>
+  <article class="preview"><div class="printhead"><div style="display:flex;align-items:center;gap:18px"><div class="printLogo">${db.logo?`<img src="${db.logo}" alt="${esc(db.clubName)} Vereinslogo">`:'<span>HC<br>HARD</span>'}</div><div><small>TRAININGSPLAN</small><h1>${esc(u.title)}</h1></div></div></div>
   <div class="printmeta"><div><small>DATUM / UHRZEIT</small><br><b>${formatDate(u.date)} · ${esc(u.time)}</b></div><div><small>HALLE</small><br><b>${esc(u.hall||'–')}</b></div><div><small>DAUER / ÜBUNGEN</small><br><b>${total} Min. / ${u.exercises.length}</b></div></div>
   ${u.notes?`<p><b>Bemerkungen / Ziele:</b><br>${esc(u.notes).replace(/\n/g,'<br>')}</p>`:''}
   <h2 style="margin-top:25px">Trainingsablauf</h2>
   ${u.exercises.map((x,i)=>`<section class="printEx"><h3>${i+1}. ${esc(x.title)} <span style="float:right;color:var(--ink)">${Number(x.minutes)||0} Min.</span></h3><small>${esc(x.category)}</small><p>${esc(x.notes)}</p>${x.image?`<img alt="Übungsbild" src="${x.image}">`:''}${x.tactic?.image?`<div><img alt="Taktikboard" src="${x.tactic.image}"></div>`:''}</section>`).join('')||'<p>Noch keine Übungen hinzugefügt.</p>'}
-  <div class="foot">ALPLA HC Hard – Trainingsplanung</div></article>`;
+  <div class="foot">${esc(db.clubName)} – Trainingsplanung</div></article>`;
 }
 
 function exportData(){const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='HC-Hard-Trainingsplaner-Backup-'+today()+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);}
@@ -775,6 +860,7 @@ async function cloudDownload(){if(cloudBusy)return;cloudBusy=true;try{
 }catch(e){cloudMessage('Laden fehlgeschlagen: '+(e?.message||e));}finally{cloudBusy=false;}}
 
 function render(){
+  logo();
   const app=$('app');
   if(storageMode==='lade'){app.innerHTML='<h1>Trainingsdaten werden geladen …</h1><p>Bitte kurz warten, bis die gespeicherten Übungen verfügbar sind.</p>';return;}
   if(page==='units' || page==='archive'){ app.innerHTML=cards(page==='archive'); bindCards(); }
