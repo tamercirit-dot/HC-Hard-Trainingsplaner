@@ -506,7 +506,26 @@ function cloudPanel(){return `<section class="cloudBox"><h3>☁ Microsoft 365 / 
 </section>`;}
 function cloudMessage(s){cloudMsg=s;const el=$('cloudStatus');if(el)el.textContent=s;}
 function bindCloudPanel(){const actions=[['cloudLogin',cloudLogin],['cloudTest',cloudTest],['cloudUpload',cloudUpload],['cloudDownload',cloudDownload]];for(const [id,fn] of actions){const el=$(id);if(el)el.onclick=fn;}}
-function cloudScript(){return new Promise((resolve,reject)=>{if(window.msal){resolve(window.msal);return;}let el=document.createElement('script');el.src='https://alcdn.msauth.net/browser/2.38.4/js/msal-browser.min.js';el.onload=()=>window.msal?resolve(window.msal):reject(Error('MSAL-Bibliothek konnte nicht geladen werden'));el.onerror=()=>reject(Error('Microsoft-Anmeldebibliothek wurde blockiert.'));document.head.append(el);});}
+function cloudScript(){
+  if(window.msal)return Promise.resolve(window.msal);
+  const sources=[
+    'https://alcdn.msftauth.net/browser/2.35.0/js/msal-browser.min.js',
+    'https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js'
+  ];
+  return new Promise((resolve,reject)=>{
+    let idx=0;
+    const attempt=()=>{
+      if(window.msal){resolve(window.msal);return;}
+      if(idx>=sources.length){reject(Error('Microsoft-Anmeldebibliothek konnte von beiden Microsoft-CDNs nicht geladen werden. Bitte in Edge mit F12 → Netzwerk prüfen, ob alcdn.msftauth.net und alcdn.msauth.net blockiert werden.'));return;}
+      const src=sources[idx++],el=document.createElement('script');
+      el.src=src;el.async=true;el.crossOrigin='anonymous';
+      el.onload=()=>window.msal?resolve(window.msal):attempt();
+      el.onerror=attempt;
+      document.head.appendChild(el);
+    };
+    attempt();
+  });
+}
 async function cloudInitialize(){if(cloudApp)return cloudApp;await cloudScript();cloudApp=new window.msal.PublicClientApplication({auth:{clientId:CLOUD_CLIENT_ID,authority:'https://login.microsoftonline.com/organizations',redirectUri:'https://tamercirit-dot.github.io/HC-Hard-Trainingsplaner/'},cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}});cloudAccount=cloudApp.getAllAccounts()[0]||null;return cloudApp;}
 async function cloudLogin(){try{cloudMessage('Microsoft-Anmeldung wird geöffnet …');const app=await cloudInitialize();const result=await app.loginPopup({scopes:CLOUD_SCOPE});cloudAccount=result.account;cloudMessage('Angemeldet: '+(cloudAccount.username||'Microsoft 365')+'. Jetzt Verbindung testen.');}catch(e){cloudMessage('Anmeldung fehlgeschlagen: '+(e?.message||e));}}
 async function cloudToken(){const app=await cloudInitialize();if(!cloudAccount)cloudAccount=app.getAllAccounts()[0];if(!cloudAccount)throw Error('Zuerst auf „Mit Microsoft 365 anmelden“ klicken.');try{return (await app.acquireTokenSilent({account:cloudAccount,scopes:CLOUD_SCOPE})).accessToken;}catch(e){const r=await app.acquireTokenPopup({account:cloudAccount,scopes:CLOUD_SCOPE});return r.accessToken;}}
