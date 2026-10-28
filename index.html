@@ -526,8 +526,27 @@ function cloudScript(){
     attempt();
   });
 }
-async function cloudInitialize(){if(cloudApp)return cloudApp;await cloudScript();cloudApp=new window.msal.PublicClientApplication({auth:{clientId:CLOUD_CLIENT_ID,authority:'https://login.microsoftonline.com/organizations',redirectUri:'https://tamercirit-dot.github.io/HC-Hard-Trainingsplaner/auth.html'},cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}});cloudAccount=cloudApp.getAllAccounts()[0]||null;return cloudApp;}
-async function cloudLogin(){try{cloudMessage('Microsoft-Anmeldung wird geöffnet …');const app=await cloudInitialize();const result=await app.loginPopup({scopes:CLOUD_SCOPE});cloudAccount=result.account;cloudMessage('Angemeldet: '+(cloudAccount.username||'Microsoft 365')+'. Jetzt Verbindung testen.');}catch(e){cloudMessage('Anmeldung fehlgeschlagen: '+(e?.message||e));}}
+let cloudInitPromise=null;
+async function cloudInitialize(){
+  if(cloudInitPromise)return cloudInitPromise;
+  cloudInitPromise=(async()=>{
+    await cloudScript();
+    const app=new window.msal.PublicClientApplication({
+      auth:{clientId:CLOUD_CLIENT_ID,authority:'https://login.microsoftonline.com/organizations',redirectUri:'https://tamercirit-dot.github.io/HC-Hard-Trainingsplaner/',navigateToLoginRequestUrl:false},
+      cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+    });
+    const result=await app.handleRedirectPromise();
+    if(result?.account){cloudAccount=result.account;app.setActiveAccount?.(result.account);cloudMessage('Angemeldet: '+(cloudAccount.username||'Microsoft 365')+'. Jetzt Verbindung testen.');}
+    else {cloudAccount=app.getActiveAccount?.()||app.getAllAccounts()[0]||null;if(cloudAccount)cloudMessage('Angemeldet: '+(cloudAccount.username||'Microsoft 365')+'. Jetzt Verbindung testen.');}
+    cloudApp=app;
+    return app;
+  })();
+  try{return await cloudInitPromise;}catch(e){cloudInitPromise=null;throw e;}
+}
+async function cloudLogin(){
+  try{cloudMessage('Weiterleitung zur Microsoft-Anmeldung …');const app=await cloudInitialize();await app.loginRedirect({scopes:CLOUD_SCOPE});}
+  catch(e){cloudMessage('Anmeldung fehlgeschlagen: '+(e?.message||e));}
+}
 async function cloudToken(){const app=await cloudInitialize();if(!cloudAccount)cloudAccount=app.getAllAccounts()[0];if(!cloudAccount)throw Error('Zuerst auf „Mit Microsoft 365 anmelden“ klicken.');try{return (await app.acquireTokenSilent({account:cloudAccount,scopes:CLOUD_SCOPE})).accessToken;}catch(e){const r=await app.acquireTokenPopup({account:cloudAccount,scopes:CLOUD_SCOPE});return r.accessToken;}}
 async function cloudFetch(url,options={}){const token=await cloudToken();const resp=await fetch(url,{...options,headers:{Authorization:'Bearer '+token,...options.headers}});if(!resp.ok){let body=await resp.text().catch(()=> '');throw Error('Microsoft Graph HTTP '+resp.status+': '+body.slice(0,450));}return resp;}
 async function cloudRoot(){return (await (await cloudFetch('https://graph.microsoft.com/v1.0/me/drive/special/approot')).json());}
@@ -570,7 +589,7 @@ function render(){
   else if(page==='preview'){ app.innerHTML=preview(); }
 }
 window.navigate=navigate;
-render();startStorage();
+render();startStorage();cloudInitialize().catch(e=>cloudMessage('Microsoft-Anmeldung kann nicht initialisiert werden: '+(e?.message||e)));
 // Zu Beginn eine zusätzliche Sicherung der bereits vorhandenen Daten anlegen.
 // Sicherung wird beim nächsten Speichern erstellt.
 </script>
