@@ -264,7 +264,7 @@ function preview(){
   const u=unit(); if(!u)return '';
   const total=u.exercises.reduce((n,x)=>n+(Number(x.minutes)||0),0);
   return `<div class="toolbar noprint"><button onclick="mode='units';navigate('editor')">← Zurück zur Bearbeitung</button><button class="primary" onclick="window.print()">PDF drucken / als PDF speichern</button><button class="primary" onclick="archivePdfToCloud()">Als PDF in OneDrive archivieren</button><button onclick="uploadClubLogo()">Vereinslogo hochladen</button><button onclick="navigate('units')">Meine Einheiten</button></div>
-  <article class="preview"><div class="printhead"><div style="display:flex;align-items:center;gap:18px"><div class="printLogo">${db.logo?`<img src="${db.logo}" alt="ALPLA HC Hard Vereinslogo">`:'<span>HC<br>HARD</span>'}</div><div><small>ALPLA HC HARD · TRAININGSPLAN</small><h1>${esc(u.title)}</h1></div></div></div>
+  <article class="preview"><div class="printhead"><div style="display:flex;align-items:center;gap:18px"><div class="printLogo">${db.logo?`<img src="${db.logo}" alt="ALPLA HC Hard Vereinslogo">`:'<span>HC<br>HARD</span>'}</div><div><small>TRAININGSPLAN</small><h1>${esc(u.title)}</h1></div></div></div>
   <div class="printmeta"><div><small>DATUM / UHRZEIT</small><br><b>${formatDate(u.date)} · ${esc(u.time)}</b></div><div><small>HALLE</small><br><b>${esc(u.hall||'–')}</b></div><div><small>DAUER / ÜBUNGEN</small><br><b>${total} Min. / ${u.exercises.length}</b></div></div>
   ${u.notes?`<p><b>Bemerkungen / Ziele:</b><br>${esc(u.notes).replace(/\n/g,'<br>')}</p>`:''}
   <h2 style="margin-top:25px">Trainingsablauf</h2>
@@ -647,7 +647,7 @@ async function makeTrainingPdf(u){
   function wrap(text,max=usable,size=24,bold=false){ctx.font=(bold?'bold ':'')+size+'px Arial';const out=[];for(const paragraph of String(text||'').split('\n')){let st='';for(const word of paragraph.split(/\s+/)){if(ctx.measureText(st?st+' '+word:word).width>max && st){out.push(st);st=word;}else st=st?st+' '+word:word;}out.push(st);}return out;}
   function ensure(n){if(y+n>H-95)newPage();}
   async function drawImg(src){if(!src)return;const im=await loadDataImage(src);const scale=Math.min(usable/im.width,530/im.height);const iw=im.width*scale,ih=im.height*scale;ensure(ih+32);ctx.drawImage(im,margin,y,iw,ih);y+=ih+25;}
-  newPage();line('ALPLA HC HARD · TRAININGSPLAN',27,true,'#de071c',26);ensure(65);for(const t of wrap(u.title,usable,42,true)){line(t,42,true,'#10213b',18);}y+=14;
+  newPage();line('TRAININGSPLAN',27,true,'#de071c',26);ensure(65);for(const t of wrap(u.title,usable,42,true)){line(t,42,true,'#10213b',18);}y+=14;
   ctx.fillStyle='#d90a1c';ctx.fillRect(margin,y,usable,5);y+=45;
   for(const t of wrap(`Datum: ${formatDate(u.date)}   Uhrzeit: ${u.time||'-'}`,usable,23)){ensure(44);line(t,23);}
   for(const t of wrap('Halle: '+(u.hall||'-'),usable,23)){ensure(44);line(t,23);}

@@ -1,1 +1,1 @@
-Version 24: OneDrive Auto-Sync (Testversion). Vorher JSON-Backup herunterladen. Nach der Microsoft-Anmeldung erfolgt ein Erstabgleich. Unterschiedliche Daten erfordern manuelle Auswahl. Cloud-Sicherung bleibt als Gesamtdaten-Datei vorhanden. Ordner werden zusätzlich angelegt. Online-Verbindung erforderlich. Keine Gewähr bei zeitgleichen Offline-Änderungen.
+Version 26 – PDF-Kopfzeile: nur TRAININGSPLAN statt ALPLA HC HARD · TRAININGSPLAN. Alle übrigen Funktionen wie in V25.
