@@ -33,7 +33,7 @@ input,select,textarea{width:100%;padding:12px;border:1px solid #dbe1e9;border-ra
 .library{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:15px}.libitem{background:#fff;border:1px solid var(--line);padding:19px;border-radius:15px}.libitem p{white-space:pre-line;font-size:13px;color:#536077;max-height:100px;overflow:auto}
 .preview{max-width:890px;background:#fff;margin:auto;padding:30px;border:1px solid var(--line);border-radius:16px}.printhead{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--red);padding-bottom:12px}.printhead h1{font-size:24px}.printLogo{width:78px;height:78px;flex:none;display:grid;place-items:center;border-radius:10px;background:#fff1f2;color:var(--red);font-weight:900;text-align:center;line-height:1.05}.printLogo img{width:100%;height:100%;object-fit:contain}.printmeta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}.printmeta>div{background:#f5f6f8;border-radius:8px;padding:11px;font-size:13px}.printEx{break-inside:avoid;border-top:3px solid #334155;padding:20px 0;margin-top:13px}.printEx h3{margin:0 0 5px;font-size:16px}.printEx p{white-space:pre-wrap;font-size:13px;line-height:1.45}.printEx img{max-height:260px;max-width:100%;object-fit:contain;margin-top:8px}.notice{padding:12px;border-radius:10px;background:#fff2f2;color:#8a1a20;font-size:13px;margin:15px 0}.hide{display:none!important}.settings{margin-top:20px;border-top:1px solid var(--line);padding-top:15px}.foot{font-size:12px;color:var(--muted);margin-top:25px}
 .modalWrap{position:fixed;inset:0;background:#0007;z-index:200;display:flex;align-items:center;justify-content:center;padding:18px}.modal{width:min(1220px,100%);height:min(92vh,860px);background:#fff;border-radius:22px;overflow:hidden;display:grid;grid-template-columns:300px 1fr;border:1px solid var(--line);box-shadow:0 20px 60px #0004}.sidebar{padding:16px;background:#fbfcfe;border-right:1px solid var(--line);overflow:auto}.boardArea{display:flex;flex-direction:column;min-width:0}.boardTop{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap}.boardTop h3{margin:0;font-size:20px}.sideGroup{margin-bottom:18px}.sideGroup h4{font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin:0 0 10px}.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.seg.two{grid-template-columns:repeat(2,1fr)}.seg button{padding:10px 8px;font-size:13px}.seg button.on,.tool.on,.colorbtn.on,.tokenBtn.on{background:var(--red);color:#fff;border-color:var(--red)}.toolsGrid,.tokenGrid,.colorGrid,.sizeGrid{display:grid;gap:8px}.toolsGrid{grid-template-columns:repeat(2,1fr)}.tokenGrid{grid-template-columns:repeat(2,1fr)}.colorGrid{grid-template-columns:repeat(5,1fr)}.sizeGrid{grid-template-columns:repeat(3,1fr)}.tool,.tokenBtn,.sizeBtn{padding:10px 8px;font-size:13px}.colorbtn{width:100%;height:38px;border-radius:10px;padding:0}.colorbtn span{display:block;width:100%;height:100%;border-radius:9px}.boardCanvasWrap{flex:1;min-height:0;overflow:hidden;background:#dfe4ea;padding:12px;display:flex;justify-content:center;align-items:center}.boardCanvas{display:block;width:auto;height:auto;max-width:100%;max-height:calc(92vh - 145px);object-fit:contain;background:#fff;box-shadow:0 10px 25px #00000022;border-radius:6px;touch-action:none}.team-a{background:#ed3f49!important;color:white!important;border-color:#ed3f49!important}.team-b{background:#3f7ff0!important;color:white!important;border-color:#3f7ff0!important}.tokenLegend{font-size:12px;color:var(--muted);line-height:1.4}.pill{display:inline-block;padding:3px 8px;border-radius:99px;background:#eef3fa;color:#4b5873;font-size:12px;font-weight:700}.spaced{display:flex;gap:8px;flex-wrap:wrap}.boardActions{display:flex;gap:8px;flex-wrap:wrap}.hint{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.45}
-@media(max-width:980px){.editor{grid-template-columns:1fr}.modal{grid-template-columns:1fr;height:95vh}.sidebar{order:2;border-right:none;border-top:1px solid var(--line)}.boardArea{order:1}.top{flex-direction:column;align-items:stretch}.printmeta{grid-template-columns:1fr}}
+@media screen and (max-width:980px){.editor{grid-template-columns:1fr}.modal{grid-template-columns:1fr;height:95vh}.sidebar{order:2;border-right:none;border-top:1px solid var(--line)}.boardArea{order:1}.top{flex-direction:column;align-items:stretch}.printmeta{grid-template-columns:1fr}}
 @media print{body{background:white}.top,.noprint,.toolbar,.foot{display:none!important}.container{max-width:none;margin:0;padding:0}.preview{max-width:none;border:none;padding:0}.printmeta{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.85fr)!important;gap:8px!important;margin:12px 0 14px!important}.printmeta>div{min-width:0;padding:9px!important;break-inside:avoid;font-size:11px!important}.printmeta b{font-size:11px;overflow-wrap:anywhere}.preview>p{margin:11px 0!important;font-size:12px}.preview>h2{margin:14px 0 8px!important}.printEx{break-inside:avoid;margin-top:8px;padding:13px 0} @page{size:A4;margin:14mm}}
 
 .cloudBox{margin:16px 0;padding:18px;background:#fff;border:1px solid #dbe1e9;border-radius:16px}.cloudBox h3{margin:0 0 6px}.cloudBox p{margin:8px 0;color:#536077;font-size:13px}.cloudStatus{background:#f3f6fb;border-radius:8px;padding:10px;font-size:13px;margin:10px 0}.cloudButtons{display:flex;gap:8px;flex-wrap:wrap}.cloudBox button{font-size:13px}.cloudWarn{background:#fff8eb;color:#865b17;border-radius:8px;padding:9px;font-size:12px}.cloudHidden{display:none}
@@ -85,6 +85,28 @@ input,select,textarea{width:100%;padding:12px;border:1px solid #dbe1e9;border-ra
 .preview .printNotes b{font-size:13px}
 .preview .printSectionHeading{font-size:13px;font-weight:700;margin:13px 0 7px}
 @media print{.printDateTime{gap:9px;white-space:nowrap}.printDateTime b{font-size:11px!important}.preview .printNotes,.preview .printNotes b,.preview .printSectionHeading{font-size:11px!important}.preview .printSectionHeading{margin:10px 0 6px!important}}
+
+/* V37: Drucklayout fuer A4 – drei Metadaten-Spalten, auch bei schmalem Druck-Viewport */
+@media print {
+  .preview .printmeta {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, .78fr) !important;
+    gap: 9px !important;
+    width: 100% !important;
+    align-items: stretch !important;
+  }
+  .preview .printmeta > div {display:block!important;min-width:0!important;margin:0!important;padding:9px!important;}
+  .preview .printDateTime {display:flex!important;flex-direction:row!important;align-items:baseline!important;gap:7px!important;white-space:nowrap!important;}
+  .preview .printDateTime b {white-space:nowrap!important;}
+  .preview .printNotes, .preview .printNotes b, .preview .printSectionHeading {font-size:12px!important;line-height:1.3!important;}
+  .preview .printSectionHeading {margin:12px 0 6px!important;}
+}
+
+/* V38: Datum/Uhrzeit exakt an der linken Textkante ausrichten. */
+.preview .printmeta > div:first-child {padding-left:0!important;}
+@media print {
+  .preview .printmeta > div:first-child {padding-left:0!important;}
+}
 </style>
 </head>
 <body>
