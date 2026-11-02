@@ -34,7 +34,7 @@ input,select,textarea{width:100%;padding:12px;border:1px solid #dbe1e9;border-ra
 .preview{max-width:890px;background:#fff;margin:auto;padding:30px;border:1px solid var(--line);border-radius:16px}.printhead{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--red);padding-bottom:12px}.printhead h1{font-size:24px}.printLogo{width:78px;height:78px;flex:none;display:grid;place-items:center;border-radius:10px;background:#fff1f2;color:var(--red);font-weight:900;text-align:center;line-height:1.05}.printLogo img{width:100%;height:100%;object-fit:contain}.printmeta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}.printmeta>div{background:#f5f6f8;border-radius:8px;padding:11px;font-size:13px}.printEx{break-inside:avoid;border-top:3px solid #334155;padding:20px 0;margin-top:13px}.printEx h3{margin:0 0 5px;font-size:16px}.printEx p{white-space:pre-wrap;font-size:13px;line-height:1.45}.printEx img{max-height:260px;max-width:100%;object-fit:contain;margin-top:8px}.notice{padding:12px;border-radius:10px;background:#fff2f2;color:#8a1a20;font-size:13px;margin:15px 0}.hide{display:none!important}.settings{margin-top:20px;border-top:1px solid var(--line);padding-top:15px}.foot{font-size:12px;color:var(--muted);margin-top:25px}
 .modalWrap{position:fixed;inset:0;background:#0007;z-index:200;display:flex;align-items:center;justify-content:center;padding:18px}.modal{width:min(1220px,100%);height:min(92vh,860px);background:#fff;border-radius:22px;overflow:hidden;display:grid;grid-template-columns:300px 1fr;border:1px solid var(--line);box-shadow:0 20px 60px #0004}.sidebar{padding:16px;background:#fbfcfe;border-right:1px solid var(--line);overflow:auto}.boardArea{display:flex;flex-direction:column;min-width:0}.boardTop{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap}.boardTop h3{margin:0;font-size:20px}.sideGroup{margin-bottom:18px}.sideGroup h4{font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin:0 0 10px}.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.seg.two{grid-template-columns:repeat(2,1fr)}.seg button{padding:10px 8px;font-size:13px}.seg button.on,.tool.on,.colorbtn.on,.tokenBtn.on{background:var(--red);color:#fff;border-color:var(--red)}.toolsGrid,.tokenGrid,.colorGrid,.sizeGrid{display:grid;gap:8px}.toolsGrid{grid-template-columns:repeat(2,1fr)}.tokenGrid{grid-template-columns:repeat(2,1fr)}.colorGrid{grid-template-columns:repeat(5,1fr)}.sizeGrid{grid-template-columns:repeat(3,1fr)}.tool,.tokenBtn,.sizeBtn{padding:10px 8px;font-size:13px}.colorbtn{width:100%;height:38px;border-radius:10px;padding:0}.colorbtn span{display:block;width:100%;height:100%;border-radius:9px}.boardCanvasWrap{flex:1;min-height:0;overflow:hidden;background:#dfe4ea;padding:12px;display:flex;justify-content:center;align-items:center}.boardCanvas{display:block;width:auto;height:auto;max-width:100%;max-height:calc(92vh - 145px);object-fit:contain;background:#fff;box-shadow:0 10px 25px #00000022;border-radius:6px;touch-action:none}.team-a{background:#ed3f49!important;color:white!important;border-color:#ed3f49!important}.team-b{background:#3f7ff0!important;color:white!important;border-color:#3f7ff0!important}.tokenLegend{font-size:12px;color:var(--muted);line-height:1.4}.pill{display:inline-block;padding:3px 8px;border-radius:99px;background:#eef3fa;color:#4b5873;font-size:12px;font-weight:700}.spaced{display:flex;gap:8px;flex-wrap:wrap}.boardActions{display:flex;gap:8px;flex-wrap:wrap}.hint{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.45}
 @media(max-width:980px){.editor{grid-template-columns:1fr}.modal{grid-template-columns:1fr;height:95vh}.sidebar{order:2;border-right:none;border-top:1px solid var(--line)}.boardArea{order:1}.top{flex-direction:column;align-items:stretch}.printmeta{grid-template-columns:1fr}}
-@media print{body{background:white}.top,.noprint,.toolbar,.foot{display:none!important}.container{max-width:none;margin:0;padding:0}.preview{max-width:none;border:none;padding:0}.printEx{break-inside:avoid} @page{size:A4;margin:14mm}}
+@media print{body{background:white}.top,.noprint,.toolbar,.foot{display:none!important}.container{max-width:none;margin:0;padding:0}.preview{max-width:none;border:none;padding:0}.printmeta{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.85fr)!important;gap:8px!important;margin:12px 0 14px!important}.printmeta>div{min-width:0;padding:9px!important;break-inside:avoid;font-size:11px!important}.printmeta b{font-size:11px;overflow-wrap:anywhere}.preview>p{margin:11px 0!important;font-size:12px}.preview>h2{margin:14px 0 8px!important}.printEx{break-inside:avoid;margin-top:8px;padding:13px 0} @page{size:A4;margin:14mm}}
 
 .cloudBox{margin:16px 0;padding:18px;background:#fff;border:1px solid #dbe1e9;border-radius:16px}.cloudBox h3{margin:0 0 6px}.cloudBox p{margin:8px 0;color:#536077;font-size:13px}.cloudStatus{background:#f3f6fb;border-radius:8px;padding:10px;font-size:13px;margin:10px 0}.cloudButtons{display:flex;gap:8px;flex-wrap:wrap}.cloudBox button{font-size:13px}.cloudWarn{background:#fff8eb;color:#865b17;border-radius:8px;padding:9px;font-size:12px}.cloudHidden{display:none}
 
@@ -78,6 +78,13 @@ input,select,textarea{width:100%;padding:12px;border:1px solid #dbe1e9;border-ra
 .adminModalOpen .homeManage{display:block}
 .managementHeader{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .managementHeader h2{margin:0}.managementHeader button{flex:none}
+/* PDF-Kopf: Datum und Uhrzeit in einer Zeile, kompakte Abschnittstitel */
+.printDateTime{display:flex;align-items:baseline;gap:12px;flex-wrap:nowrap;white-space:nowrap}
+.printDateTime b{font-size:13px}
+.preview .printNotes{font-size:13px;line-height:1.4;margin:10px 0}
+.preview .printNotes b{font-size:13px}
+.preview .printSectionHeading{font-size:13px;font-weight:700;margin:13px 0 7px}
+@media print{.printDateTime{gap:9px;white-space:nowrap}.printDateTime b{font-size:11px!important}.preview .printNotes,.preview .printNotes b,.preview .printSectionHeading{font-size:11px!important}.preview .printSectionHeading{margin:10px 0 6px!important}}
 </style>
 </head>
 <body>
@@ -125,6 +132,7 @@ const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const today=()=>new Date().toLocaleDateString('en-CA');
 const formatDate=v=>v?new Date(v+'T12:00:00').toLocaleDateString('de-AT'):'–';
+const formatTrainingDate=v=>{if(!v)return '–';const d=new Date(v+'T12:00:00');return ['So','Mo','Di','Mi','Do','Fr','Sa'][d.getDay()]+' '+d.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'numeric'});};
 const deep=v=>JSON.parse(JSON.stringify(v));
 // Zusatzsicherungen im separaten IndexedDB-Speicher (gleicher Browser, kein Cloud-Backup).
 let backupTimer=null, backupBusy=false, backupPending=false;
@@ -350,9 +358,9 @@ function preview(){
   const total=u.exercises.reduce((n,x)=>n+(Number(x.minutes)||0),0);
   return `<div class="toolbar noprint"><button onclick="mode='units';navigate('editor')">← Zurück zur Bearbeitung</button><button class="primary" onclick="window.print()">PDF drucken / als PDF speichern</button><button class="primary" onclick="archivePdfToCloud()">Als PDF in OneDrive archivieren</button><button onclick="uploadClubLogo()">Vereinslogo hochladen</button><button onclick="navigate('units')">Meine Einheiten</button></div>
   <article class="preview"><div class="printhead"><div style="display:flex;align-items:center;gap:18px"><div class="printLogo">${db.logo?`<img src="${db.logo}" alt="${esc(db.clubName)} Vereinslogo">`:'<span>HC<br>HARD</span>'}</div><div><small>TRAININGSPLAN</small><h1>${esc(u.title)}</h1></div></div></div>
-  <div class="printmeta"><div><small>DATUM / UHRZEIT</small><br><b>${formatDate(u.date)} · ${esc(u.time)}</b></div><div><small>HALLE</small><br><b>${esc(u.hall||'–')}</b></div><div><small>DAUER / ÜBUNGEN</small><br><b>${total} Min. / ${u.exercises.length}</b></div></div>
-  ${u.notes?`<p><b>Bemerkungen / Ziele:</b><br>${esc(u.notes).replace(/\n/g,'<br>')}</p>`:''}
-  <h2 style="margin-top:25px">Trainingsablauf</h2>
+  <div class="printmeta"><div><small>DATUM / UHRZEIT</small><br><span class="printDateTime"><b>${formatTrainingDate(u.date)}</b><b>${esc(u.time||'–')}</b></span></div><div><small>HALLE</small><br><b>${esc(u.hall||'–')}</b></div><div><small>DAUER / ÜBUNGEN</small><br><b>${total} Min. / ${u.exercises.length}</b></div></div>
+  ${u.notes?`<p class="printNotes"><b>Bemerkungen / Ziele:</b> ${esc(u.notes).replace(/\n/g,'<br>')}</p>`:''}
+  <h2 class="printSectionHeading">Trainingsablauf</h2>
   ${u.exercises.map((x,i)=>`<section class="printEx"><h3>${i+1}. ${esc(x.title)} <span style="float:right;color:var(--ink)">${Number(x.minutes)||0} Min.</span></h3><small>${esc(x.category)}</small><p>${esc(x.notes)}</p>${x.image?`<img alt="Übungsbild" src="${x.image}">`:''}${x.tactic?.image?`<div><img alt="Taktikboard" src="${x.tactic.image}"></div>`:''}</section>`).join('')||'<p>Noch keine Übungen hinzugefügt.</p>'}
   <div class="foot">${esc(db.clubName)} – Trainingsplanung</div></article>`;
 }
@@ -733,13 +741,23 @@ async function makeTrainingPdf(u){
   function ensure(n){if(y+n>H-95)newPage();}
   async function drawImg(src){if(!src)return;const im=await loadDataImage(src);const scale=Math.min(usable/im.width,530/im.height);const iw=im.width*scale,ih=im.height*scale;ensure(ih+32);ctx.drawImage(im,margin,y,iw,ih);y+=ih+25;}
   newPage();line('TRAININGSPLAN',27,true,'#de071c',26);ensure(65);for(const t of wrap(u.title,usable,42,true)){line(t,42,true,'#10213b',18);}y+=14;
-  ctx.fillStyle='#d90a1c';ctx.fillRect(margin,y,usable,5);y+=45;
-  for(const t of wrap(`Datum: ${formatDate(u.date)}   Uhrzeit: ${u.time||'-'}`,usable,23)){ensure(44);line(t,23);}
-  for(const t of wrap('Halle: '+(u.hall||'-'),usable,23)){ensure(44);line(t,23);}
+  ctx.fillStyle='#d90a1c';ctx.fillRect(margin,y,usable,5);y+=24;
   const total=u.exercises.reduce((v,e)=>v+(Number(e.minutes)||0),0);
-  line(`Dauer: ${total} Minuten     Übungen: ${u.exercises.length}`,23);y+=16;
-  if(u.notes){for(const t of wrap('Bemerkungen: '+u.notes)){ensure(44);line(t,23);}}
-  ensure(70);line('Trainingsablauf',32,true,'#10213b',24);
+  const info=[['DATUM / UHRZEIT',formatTrainingDate(u.date)+' · '+(u.time||'–')],['HALLE',u.hall||'–'],['DAUER / ÜBUNGEN',total+' Min. / '+u.exercises.length]];
+  const columnGap=15,columnWidth=(usable-2*columnGap)/3,infoTop=y;
+  let maxInfoHeight=0;
+  info.forEach(([label,value],i)=>{
+    const x=margin+i*(columnWidth+columnGap),pad=14,w=columnWidth-2*pad;
+    ctx.font=(i===0?'17px Arial':'19px Arial');const words=String(value).split(/\s+/),lines=[];let acc='';
+    for(const word of words){const candidate=acc?acc+' '+word:word;if(acc&&ctx.measureText(candidate).width>w){lines.push(acc);acc=word;}else acc=candidate;}if(acc)lines.push(acc);
+    const height=Math.max(90,51+lines.length*25);maxInfoHeight=Math.max(maxInfoHeight,height);
+    ctx.fillStyle='#f4f6f8';ctx.fillRect(x,infoTop,columnWidth,height);
+    ctx.font='18px Arial';ctx.fillStyle='#64748b';ctx.fillText(label,x+pad,infoTop+27);
+    ctx.font=(i===0?'bold 17px Arial':'bold 19px Arial');ctx.fillStyle='#162237';lines.forEach((t,j)=>ctx.fillText(t,x+pad,infoTop+54+j*25));
+  });
+  y=infoTop+maxInfoHeight+25;
+  if(u.notes){for(const t of wrap('Bemerkungen / Ziele: '+u.notes,usable,19)){ensure(33);line(t,19,false,'#10213b',10);}}
+  ensure(46);line('Trainingsablauf',19,true,'#10213b',15);
   for(let i=0;i<u.exercises.length;i++){
     const ex=u.exercises[i];ensure(110);ctx.fillStyle='#334155';ctx.fillRect(margin,y,usable,5);y+=45;
     for(const t of wrap(`${i+1}. ${ex.title} (${Number(ex.minutes)||0} Min.)`,usable,29,true)){ensure(52);line(t,29,true);}
