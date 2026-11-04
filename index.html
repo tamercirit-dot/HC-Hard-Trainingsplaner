@@ -107,6 +107,36 @@ input,select,textarea{width:100%;padding:12px;border:1px solid #dbe1e9;border-ra
 @media print {
   .preview .printmeta > div:first-child {padding-left:0!important;}
 }
+
+/* V41 – Kompakter Ausdruck: Inhalte und Taktikbilder platzsparend nebeneinander. */
+.preview .printEx {padding:10px 0 8px;margin-top:5px;border-top-width:2px;}
+.preview .printEx h3 {margin:0 0 4px;font-size:14px;line-height:1.3;}
+.preview .printExerciseBody {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,210px);gap:12px;align-items:start;}
+.preview .printExerciseText {min-width:0;}
+.preview .printExerciseBody:not(:has(.printExerciseMedia)) {display:block;}
+.preview .printExerciseText p {font-size:12px;line-height:1.32;margin:5px 0 3px;white-space:pre-wrap;overflow-wrap:anywhere;}
+.preview .printExerciseText small {font-size:11px;}
+.preview .printExerciseMedia {display:flex;gap:5px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-start;min-width:0;}
+.preview .printExerciseMedia img {display:block;width:auto;max-width:100%;max-height:165px;height:auto;object-fit:contain;margin:0;}
+@media (max-width:550px) and (not print) { .preview .printExerciseBody {grid-template-columns:minmax(0,1fr) minmax(0,140px);gap:8px;} .preview .printExerciseMedia img {max-height:120px;} }
+@media print {
+  .preview .printhead {padding-bottom:7px;}
+  .preview .printLogo {height:60px;width:60px;}
+  .preview .printhead h1 {font-size:19px;}
+  .preview .printmeta {margin:8px 0 8px!important;}
+  .preview .printmeta>div {padding-top:5px!important;padding-bottom:5px!important;}
+  .preview .printNotes {margin:6px 0!important;}
+  .preview .printSectionHeading {margin:7px 0 4px!important;}
+  .preview .printEx {break-inside:auto;page-break-inside:auto;padding:7px 0 5px;margin-top:4px;}
+  .preview .printEx h3 {font-size:12px;break-after:avoid;page-break-after:avoid;}
+  .preview .printExerciseBody {display:grid!important;grid-template-columns:minmax(0,1fr) 205px!important;gap:11px!important;}
+  .preview .printExerciseBody:not(:has(.printExerciseMedia)) {display:block!important;}
+  .preview .printExerciseText p {font-size:10.5px;line-height:1.28;margin:4px 0 0;}
+  .preview .printExerciseText small {font-size:10px;}
+  .preview .printExerciseMedia {break-inside:avoid;page-break-inside:avoid;}
+  .preview .printExerciseMedia img {max-width:205px!important;max-height:150px!important;margin:0!important;}
+  @page {size:A4;margin:11mm;}
+}
 </style>
 </head>
 <body>
@@ -386,7 +416,7 @@ function preview(){
   <div class="printmeta"><div><small>DATUM / UHRZEIT</small><br><span class="printDateTime"><b>${formatTrainingDate(u.date)}</b><b>${esc(u.time||'–')}</b></span></div><div><small>HALLE</small><br><b>${esc(u.hall||'–')}</b></div><div><small>DAUER / ÜBUNGEN</small><br><b>${total} Min. / ${u.exercises.length}</b></div></div>
   ${u.notes?`<p class="printNotes"><b>Bemerkungen / Ziele:</b> ${esc(u.notes).replace(/\n/g,'<br>')}</p>`:''}
   <h2 class="printSectionHeading">Trainingsablauf</h2>
-  ${u.exercises.map((x,i)=>`<section class="printEx"><h3>${i+1}. ${esc(x.title)} <span style="float:right;color:var(--ink)">${Number(x.minutes)||0} Min.</span></h3><small>${esc(x.category)}</small><p>${esc(x.notes)}</p>${x.image?`<img alt="Übungsbild" src="${x.image}">`:''}${x.tactic?.image?`<div><img alt="Taktikboard" src="${x.tactic.image}"></div>`:''}</section>`).join('')||'<p>Noch keine Übungen hinzugefügt.</p>'}
+  ${u.exercises.map((x,i)=>`<section class="printEx"><h3>${i+1}. ${esc(x.title)} <span style="float:right;color:var(--ink)">${Number(x.minutes)||0} Min.</span></h3><div class="printExerciseBody"><div class="printExerciseText"><small>${esc(x.category)}</small>${x.notes?`<p>${esc(x.notes)}</p>`:''}</div>${(x.image||x.tactic?.image)?`<div class="printExerciseMedia">${x.image?`<img alt="Übungsbild" src="${x.image}">`:''}${x.tactic?.image?`<img alt="Taktikboard" src="${x.tactic.image}">`:''}</div>`:''}</div></section>`).join('')||'<p>Noch keine Übungen hinzugefügt.</p>'}
   <div class="foot">${esc(db.clubName)} – Trainingsplanung</div></article>`;
 }
 
